@@ -8,10 +8,6 @@ const server = async () => {
   appConfig(app);
   app.use('/', routes);
 
-  app.get('/', (req, res) => {
-      res.send("this is index baby");
-  });
-
   app.listen(PORT, async () => {
     console.log(`service running on: ${PORT}`);
   });

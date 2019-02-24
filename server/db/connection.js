@@ -10,7 +10,10 @@ const conn  = mysql.createPool({
 conn.sql = async (sql) => {
   return new Promise((resolve,reject) => {
     conn.query(sql, (err, cb) => {
-      if(err) reject(err);
+      if(err){
+        //console.log(err);
+        reject(err);
+      }
       resolve(cb);
     })
   })

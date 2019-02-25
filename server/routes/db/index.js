@@ -1,11 +1,10 @@
-const router    =   require('express').Router();
-const ctrl      =   require('../../controller/db/initialize');
-
+const router            =   require('express').Router();
+const initializeDB      =   require('../../controller/db/initialize');
 
 router.get('/initialize', async (req,res) => {
   try{
-    let cb = await ctrl.createDB();
-    res.send(cb);
+    await initializeDB();
+    res.send('Gulo database created successfully');
   }catch(e){
     console.log(e);
     return res.status(400).send(e);

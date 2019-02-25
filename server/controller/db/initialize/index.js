@@ -1,12 +1,16 @@
-const createDatabase  = require('./create/database');
-const createProducts  = require('./create/products');
-const createUsers     = require('./create/users');
+const createDatabase  =   require('./create/database');
+const createUsers     =   require('./create/users');
+const createProducts  =   require('./create/products');
+const createLists     =   require('./create/lists');
 
 const createDB = async () => {
-  try{    
+  try{
     await createDatabase();
+    await createUsers();
     await createProducts();
-    return 'ok';
+    await createLists();
+    
+    return 'Gulo database created successfully';
   }catch(e){
     throw Error(e);
   }

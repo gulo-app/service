@@ -18,5 +18,8 @@
     "nodemon": "^1.18.10",
     "request": "^2.88.0"
   },
+  "nodemonConfig": {
+    "ignore": ["controller/db/crawler/ramiLevy/output/*.json"]
+  },
   "devDependencies": {}
 }

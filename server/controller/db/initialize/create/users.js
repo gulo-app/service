@@ -14,6 +14,7 @@ const users = async () => {
                               lastname VARCHAR(50) NOT NULL,
                               points  INT UNSIGNED DEFAULT 0,
 
-                              PRIMARY KEY (user_id)
+                              PRIMARY KEY (user_id),
+                              UNIQUE KEY(mail)
                     ) ENGINE=InnoDB`);
 }

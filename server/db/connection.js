@@ -3,6 +3,7 @@ const conn  = mysql.createPool({
   host: "localhost",
   user: "gulo",
   password: "shenkar",
+  database: "gulo",
   connectionLimit: 1,
   supportBigNumbers: true
 });

@@ -1,10 +1,11 @@
-//ramiLevy
-const request   =   require('request');
-const cheerio   =   require('cheerio');
-const fs        =   require('fs');
-const ROOT_URL  = `https://m.rami-levy.co.il`;
-var products = [];
-var menuIndex = 1;
+const request     =   require('request');
+const cheerio     =   require('cheerio');
+const fs          =   require('fs');
+const path        =   require('path');
+const ROOT_URL    =   `https://m.rami-levy.co.il`;
+const TMP_FILE    =   {filename: 'tmp_products.json', get path(){return path.join(__dirname, './output', this.filename)}};
+const OUTPUT      =   {filename: 'output.json', get path(){return path.join(__dirname, '../output', this.filename)}};
+var   menuIndex   =   1;
 
 const fetch = async (url) => {
   return new Promise((resolve, reject) => {
@@ -14,6 +15,36 @@ const fetch = async (url) => {
     });
   })
 }
+const initializeTmpFile = async () => {
+  try{
+    fs.writeFileSync(TMP_FILE.path, '', 'utf-8');
+    console.log(`\n *** ${TMP_FILE.filename} initialized *** \n`);
+  } catch(e){
+    return false;
+  }
+}
+const appendProductsToFile =  async (products) =>{
+  try{
+    let file_products =  fs.readFileSync(TMP_FILE.path, 'utf-8');
+    file_products = !file_products ? [] : JSON.parse(file_products);
+
+    file_products = file_products.concat(products);
+    fs.writeFileSync(TMP_FILE.path, JSON.stringify(file_products), 'utf-8');
+  } catch(e){
+    console.log(e);
+  }
+}
+const copyOutput = async () =>{
+  try{
+    fs.copyFile(TMP_FILE.path, OUTPUT.path, (err) => {
+      if (err) throw err;
+      console.log(`${TMP_FILE.filename} was copied to ${OUTPUT.path}`);
+    });
+  } catch(e){
+    console.log(e);
+  }
+}
+
 const getRootMenu = async() => {
   const rootPage = `${ROOT_URL}/default.asp?catid=%7B3E31AB88-2BB0-11D7-92D3-0080AD76B634%7D`;
   let rootHTML = await fetch(rootPage);
@@ -29,12 +60,10 @@ const getRootMenu = async() => {
   });
   return menu;
 }
-
-
 const scanProduct = async (productURL) => {
   let pageHTML  = await fetch(productURL);
   let $         = await cheerio.load(pageHTML);
-  let barcode, product_name, brand_name, capacity, capacity_units_name;
+  let barcode, product_name, firm_name, brand_name, capacity, capacity_units_name;
   let product = {};
 
   $('.product_details').filter((i, wrapper) => {
@@ -42,6 +71,9 @@ const scanProduct = async (productURL) => {
     $(wrapper).find('.PropValueName').each((i, propObj) => {
       let propName  =   $(propObj).text();
       switch(propName){
+        case "שם ספק:" :
+          firm_name = $(propObj).next('.PropValue').text();
+          break;
         case "שם מותג:" :
           brand_name = $(propObj).next('.PropValue').text();
           break;
@@ -58,8 +90,24 @@ const scanProduct = async (productURL) => {
     if(prod_img.includes('no_image'))
       return false;
 
-    barcode         =   prod_img.substr(prod_img.lastIndexOf('/')+1, prod_img.lastIndexOf('.')-prod_img.lastIndexOf('/')-1);
-    product = {barcode, product_name, brand_name, capacity, capacity_units_name, menuIndex};
+    barcode   =   prod_img.substr(prod_img.lastIndexOf('/')+1, prod_img.lastIndexOf('.')-prod_img.lastIndexOf('/')-1);
+    firm_name =   !firm_name ? brand_name : firm_name;
+
+    if(barcode.toString().length < 9)
+      return false;
+    else if (!firm_name)
+      return false;
+
+
+    if(!capacity_units_name){
+      if(product_name.match(new RegExp(`[0-9]+ג`)) || product_name.match(new RegExp(`[0-9]+ גרם`)))
+        capacity_units_name = 'גרם';
+
+      if(!capacity_units_name)
+        return false;
+    }
+
+    product = {barcode, product_name, firm_name, brand_name, capacity, capacity_units_name, menuIndex};
   });
   return product;
 }
@@ -73,7 +121,9 @@ const scanMenuLinkProducts = async (linkURL) => {
     let prodHref = ROOT_URL + '/' + $(h2).parent().attr('href');
     productsLinks.push(prodHref);
   });
-  let counter = 1;
+
+  let counter   = 1;
+  let products  = [];
   for(const prodLink of productsLinks){
     try{
       let product = await scanProduct(prodLink);
@@ -90,30 +140,19 @@ const scanMenuLinkProducts = async (linkURL) => {
     }
   }
   process.stdout.write('\n');
-  return true;
+  return products;
 }
-
-const saveProductsToFile = async () => {
-  console.log("try to save products.json");
-  try{
-    fs.writeFileSync(`${__dirname}/output/products.json`, JSON.stringify(products) , 'utf-8');
-    console.log("products.json saved successfully");
-    return true;
-  } catch(e){
-    console.log(e);
-    return false;
-  }
-}
-
 const ramiLevyCrawler = async () => {
   let menu = await getRootMenu();
+  await initializeTmpFile();
 
   for(let subject of menu){
     console.log(`scan subject ${menuIndex}:`)
-    if(menuIndex>0){
+    if(menuIndex>0 && menuIndex<30){
       for(let link of subject.links){
         try{
-          await scanMenuLinkProducts(ROOT_URL + link);
+          let products = await scanMenuLinkProducts(ROOT_URL + link);
+          await appendProductsToFile(products);
         }catch(e){
           console.log(e);
         }
@@ -121,11 +160,9 @@ const ramiLevyCrawler = async () => {
     }
     menuIndex++;
   }
-
-  await saveProductsToFile();
+  copyOutput();
   console.log("finish");
-  return true;
 }
 
-//ramiLevyCrawler();
+ramiLevyCrawler();
 module.exports = ramiLevyCrawler;

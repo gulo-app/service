@@ -1,5 +1,13 @@
-const express     =   require('express');
-const bodyParser  =   require('body-parser');
+const express       =   require('express');
+const bodyParser    =   require('body-parser');
+const uuid          =   require('uuid/v4');
+const session       =   require('express-session')
+const SessionStore  =   require('session-file-store')(session);
+const path          =   require('path');
+const passport      =   require('passport');
+const initPassport  =   require('./passport');
+
+initPassport();
 
 module.exports = (app) => {
   app.use(express.static("."));
@@ -20,4 +28,18 @@ module.exports = (app) => {
     res.header('Access-Control-Allow-Credentials', true);
     next();
   });
+
+  app.use(session({ //create session
+    genid: (req) => {
+      console.log('Inside the session middleware')
+      console.log(req.sessionID)
+      return uuid() // use UUIDs for session IDs
+    },
+    store: new SessionStore({path: path.join(__dirname, './sessions')}),
+    secret: 'keyboard cat',
+    resave: false,
+    saveUninitialized: true
+  }))
+  app.use(passport.initialize());
+  app.use(passport.session());
 };

@@ -1,5 +1,7 @@
-const ramiLevy = require('./ramiLevy');
+const ramiLevyCrawler = require('./ramiLevy');
 
-module.exports = {
-  ramiLevy
+const run = async () => {  
+  await ramiLevyCrawler();
 }
+
+run();

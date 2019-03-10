@@ -164,5 +164,4 @@ const ramiLevyCrawler = async () => {
   console.log("finish");
 }
 
-// ramiLevyCrawler();
 module.exports = ramiLevyCrawler;

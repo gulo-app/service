@@ -6,6 +6,7 @@ router.use('/list',  require('./list'));
 router.use('/user',  require('./user'));
 
 router.get('/', (req, res) => {
+    console.log(req.sessionID);
     res.send("this is index baby");
 });
 

@@ -1,25 +1,32 @@
 const passport            =     require('passport');
-const UniqueTokenStrategy =     require('passport-unique-token').Strategy;
-const GoogleStrategy      =     require('passport-google-oauth20').Strategy;
 const CustomStrategy      =     require('passport-custom').Strategy;
+const googleVerifier      =     require('google-id-token-verifier');
+const axios               =     require('axios');
 const _                   =     require('lodash');
+const {GOOGLE_CID}        =     require('../../config');
+const ctrlUser            =     require('../../controller/user');
 const conn                =     require('../../db/connection');
+
 
 module.exports = () => {
   passport.use('googleID', new CustomStrategy(async function(req, done) {
       const profile     =   req.body;
-      const {googleId}  =   profile;
-      if(!googleId)
-        return done('googleID is missing', null);
+      const {googleId, tokenId}  =   profile;
+
+      if(!googleId || !tokenId)
+        return done('googleID || token are missing', null);
+
+      const isTokenValid = await verifyGoogleToken(tokenId);
+      if(!isTokenValid) return done('tokenId is invalid', null);
 
       let isExists = await conn.sql(`SELECT * FROM users WHERE googleID='${googleId}'`);
       if(isExists.length===0)
-        await GoogleRegister(profile);
+        await ctrlUser.GoogleRegister(profile);
 
-      let user = await getUser(profile.email);
+      let user = await ctrlUser.getUserByMail(profile.email);
 
       if(user.pic!==profile.imageUrl)
-        await setProfilePic(user, profile.imageUrl);
+        await ctrlUser.setProfilePic(user, profile.imageUrl);
 
       done(null, user);
     }
@@ -28,72 +35,56 @@ module.exports = () => {
   passport.use('facebookID', new CustomStrategy(async function(req, done) {
       const profile     =   req.body;
       const facebookId  =   req.body.id;
-      if(!facebookId)
-        return done('facebookID is missing', null);
+      const tokenId     =   req.body.accessToken;
+      if(!facebookId || !tokenId)
+        return done('facebookID || token are missing', null);
+
+      const isTokenValid = await verifyFacebookToken(tokenId);
+      if(!isTokenValid) return done('tokenId is invalid', null);
 
       let isExists = await conn.sql(`SELECT user_id FROM users WHERE facebookID='${facebookId}'`);
       if(isExists.length===0)
-        await FacebookRegister(profile);
+        await ctrlUser.FacebookRegister(profile);
 
-      let user = await getUser(profile.email);
+      let user = await ctrlUser.getUserByMail(profile.email);
 
       if(user.pic!==profile.picture.data.url)
-        await setProfilePic(user, profile.picture.data.url);
+        await ctrlUser.setProfilePic(user, profile.picture.data.url);
 
       done(null, user);
     }
   ));
 
   passport.serializeUser((user, done) => {  //trigger on req.login()
-    done(null, user.user_id); //write user_id into current session file
+    done(null, user.mail); //write user_id into current session file
   });
-  passport.deserializeUser(async (user_id, done) => {
-    let users = await conn.sql(`SELECT * FROM users WHERE user_id=${user_id}`); //get the user_id from session file
-    let user  = users[0] ? users[0] : null;
+  passport.deserializeUser(async (user_mail, done) => {
+    let user = await ctrlUser.getUserByMail(user_mail);
     done(null, user); //push user details into req.user
   });
 }
 
 
-
-const GoogleRegister = async (profile) => {
-  let cb = await conn.sql(`
-            INSERT INTO users
-              (mail, googleID, firstname, lastname, pic)
-            VALUES
-              ('${profile.email}','${profile.googleId}','${profile.givenName}','${profile.familyName}','${profile.imageUrl}')
-            ON DUPLICATE KEY UPDATE
-              googleID = '${profile.googleId}'
-          `);
-  let users = await conn.sql(`SELECT * FROM users WHERE googleID='${profile.googleId}'`);
-  return users[0];
+const verifyGoogleToken = async (tokenId) => {
+  return new Promise((resolve, reject) => {
+    googleVerifier.verify(tokenId, GOOGLE_CID, function (err, tokenInfo) {
+      if(err) return resolve(false);
+      resolve(true)
+    });
+  })
 }
 
-const FacebookRegister = async (profile) => {
-  let fullname = profile.name.split(' ');
-  let cb = await conn.sql(`
-            INSERT INTO users
-              (mail, facebookID, firstname, lastname, pic)
-            VALUES
-              ('${profile.email}','${profile.id}','${fullname[0]}','${fullname[1]}','${profile.picture.data.url}')
-            ON DUPLICATE KEY UPDATE
-                facebookID = '${profile.id}'
-          `);
-  let users = await conn.sql(`SELECT * FROM users WHERE facebookID='${profile.id}'`);
-  return users[0];
-}
+const verifyFacebookToken = async (tokenId) => {
+  return new Promise((resolve, reject) => {
+      const url = `https://graph.facebook.com/me?access_token=${tokenId}`;
+      axios.get(url).then((res) => {        
+        if(res.data && res.data.id)
+          return resolve(true);
 
-const setProfilePic = async (user, newPic) => {
-  await conn.sql(`UPDATE users SET pic='${newPic}' WHERE user_id=${user.user_id}`);
-  user.pic = newPic;
-}
-
-const getUser = async (mail) => {
-  let users = await conn.sql(`SELECT * FROM users WHERE mail='${mail}'`);
-  if(users.length===0) return null;
-  let user = users[0];
-
-  delete user.facebookID;
-  delete user.googleID;
-  return user;
+        return resolve(false);
+      }).catch((e) => {
+        console.log('failed cb');
+        return resolve(false);
+      })
+  })
 }

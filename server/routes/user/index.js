@@ -21,8 +21,8 @@ router.post('/login/google', (req, res) => {
 
 router.post('/logout', auth, (req,res) => {
   const user_id = req.user.user_id;
-  req.logout();
-  console.log(`user: ${user_id} logout successfully`);
+  req.session.destroy();
+  req.logout();  
   res.send(`goodbye`);
 })
 

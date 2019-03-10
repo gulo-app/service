@@ -31,14 +31,12 @@ module.exports = (app) => {
 
   app.use(session({ //create session
     genid: (req) => {
-      console.log('Inside the session middleware')
-      console.log(req.sessionID)
       return uuid() // use UUIDs for session IDs
     },
-    store: new SessionStore({path: path.join(__dirname, './sessions')}),
+    store: new SessionStore({path: path.join(__dirname, './sessions'), logFn: function(){} }),
     secret: 'keyboard cat',
-    resave: false,
-    saveUninitialized: true
+    resave: true,
+    saveUninitialized: false
   }))
   app.use(passport.initialize());
   app.use(passport.session());

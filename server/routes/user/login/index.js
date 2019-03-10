@@ -1,20 +1,38 @@
 const router            =   require('express').Router();
 const _                 =   require('lodash');
 const ctrl              =   require('../../../controller/user');
-const {RES_ERROR}       =   require('../../../config');
 const passport          =   require('passport');
+const auth              =   require('../../../middleware/auth');
+const {RES_ERROR}       =   require('../../../config');
 
-router.get('/', (req,res) => {
-  res.send("index /user/login");
-})
+router.post('/google', (req, res) => {
+  passport.authenticate('googleID', (err, user) => {
+    if(err)
+      return res.status(500).send(err);
+    if(!user)
+      return res.status(500).send('Credentials Inavlid');
 
-router.get('/google', passport.authenticate('google', { scope: ['profile'] }));
-router.get('/google/callback', passport.authenticate('google', { failureRedirect: '/user/loginError' }), function(req, res) {
-    res.send("authenticated");
+    req.login(user, (err) => {
+      return res.send(user);
+    })
+  })(req, res);
 });
 
-router.get('/loginError', (req,res) =>{
-  res.status(500).send("loginError");
+router.post('/facebook', (req, res) => {
+  passport.authenticate('facebookID', (err, user) => {
+    if(err)
+      return res.status(500).send(err);
+    if(!user)
+      return res.status(500).send('Credentials Inavlid');
+
+    req.login(user, (err) => {
+      return res.send(user);
+    })
+  })(req, res);
+});
+
+router.post('/auth-test', auth, (req,res) => {
+  res.send(req.user);
 })
 
 

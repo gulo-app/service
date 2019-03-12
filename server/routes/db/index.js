@@ -1,13 +1,14 @@
 const router            =   require('express').Router();
 const initializeDB      =   require('../../controller/db/initialize');
+const {RES_ERROR}       =   require('../../config');
 
 router.get('/initialize', async (req,res) => {
   try{
-    await initializeDB();
+    let {pass, isFill} = req.query; //<isFill> is flag which would fill the products table from the crawler output automatically after db initializition
+    await initializeDB(pass, isFill);
     res.send('Gulo database created successfully');
   }catch(e){
-    console.log(e);
-    return res.status(400).send(e);
+    RES_ERROR(res, e);
   }
 })
 

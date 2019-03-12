@@ -1,9 +1,16 @@
-const createDB    =   require('./create');
+const createDB        =   require('./create');
+const fillDB          =   require('./fill');
+const {ParamsError}   =   require('../../../config/errors');
 
-module.exports = async () => {
-  try{
-    await createDB();    
-  }catch(e){
-    throw Error(e);
+//initialize DB
+module.exports = async (pass, isFill) => {
+  if(pass!=='guloAdmin')
+    throw new ParamsError('pass is wrong!');
+
+  await createDB();
+  if(isFill==='true' || isFill===true){
+    await fillDB.products();
   }
+
+  return true;
 }

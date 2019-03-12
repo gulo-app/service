@@ -34,6 +34,7 @@ const appendProductsToFile =  async (products) =>{
     console.log(e);
   }
 }
+
 const copyOutput = async () =>{
   try{
     fs.copyFile(TMP_FILE.path, OUTPUT.path, (err) => {
@@ -142,6 +143,7 @@ const scanMenuLinkProducts = async (linkURL) => {
   process.stdout.write('\n');
   return products;
 }
+
 const ramiLevyCrawler = async () => {
   let menu = await getRootMenu();
   await initializeTmpFile();

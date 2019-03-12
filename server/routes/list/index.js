@@ -1,7 +1,7 @@
 const router            =   require('express').Router();
 const ctrl              =   require('../../controller/list');
 const _                 =   require('lodash');
-const auth       =   require('../../middleware/auth');
+const auth              =   require('../../middleware/auth');
 const {RES_ERROR}       =   require('../../config');
 
 router.get('/', (req,res) => {

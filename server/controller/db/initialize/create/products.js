@@ -22,16 +22,17 @@ const brands = async () =>{
                       brand_id INT UNSIGNED AUTO_INCREMENT,
                       brand_name VARCHAR(100) NOT NULL,
 
-                      PRIMARY KEY (brand_id)
+                      PRIMARY KEY (brand_id),
+                      UNIQUE KEY  (brand_name)
                   ) ENGINE=InnoDB`);
 }
 const capacity_units = async () =>{
   await conn.sql(`CREATE TABLE capacity_units (
                       capacity_unit_id INT UNSIGNED AUTO_INCREMENT,
                       unit_name VARCHAR(100) NOT NULL,
-                      unit_symbol VARCHAR(20) NOT NULL,
 
-                      PRIMARY KEY (capacity_unit_id)
+                      PRIMARY KEY (capacity_unit_id),
+                      UNIQUE  KEY (unit_name)
                   ) ENGINE=InnoDB`);
 }
 
@@ -41,7 +42,7 @@ const products = async () =>{
                       product_name VARCHAR(200) NOT NULL,
                       brand_id INT UNSIGNED NOT NULL,
                       capacity INT UNSIGNED NOT NULL,
-                      capacity_unit_id INT UNSIGNED NOT NULL,
+                      capacity_unit_id INT UNSIGNED,
                       memo MEDIUMTEXT,
                       verifiedCounter INT NOT NULL DEFAULT 3,
 

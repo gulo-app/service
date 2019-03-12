@@ -5,7 +5,8 @@ const conn  = mysql.createPool({
   password: "shenkar",
   database: "gulo",
   connectionLimit: 1,
-  supportBigNumbers: true
+  supportBigNumbers: true,
+  multipleStatements: true
 });
 
 conn.sql = async (sql) => {

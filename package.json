@@ -4,9 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "crawler": "node ./server/controller/db/crawler",
-    "dev": "nodemon index.js",
-    "prod": "node index.js"
+    "crawler:products": "node ./server/controller/db/crawler/products",
+    "dev": "SET NODE_ENV=DEV&&nodemon index.js",
+    "prod": "SET NODE_ENV=PROD&&node index.js"
   },
   "author": "Tomer Flom & Ligal Levy",
   "license": "ISC",
@@ -22,6 +22,7 @@
     "nodemon": "^1.18.10",
     "passport": "^0.4.0",
     "passport-custom": "^1.0.5",
+    "progress": "^2.0.3",
     "request": "^2.88.0",
     "session-file-store": "^1.2.0",
     "uuid": "^3.3.2"

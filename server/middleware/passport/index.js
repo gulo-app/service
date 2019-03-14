@@ -6,7 +6,7 @@ const _                   =     require('lodash');
 const {GOOGLE_CID}        =     require('../../config');
 const ctrlUser            =     require('../../controller/user');
 const conn                =     require('../../db/connection');
-
+const IS_PROD             =     process.env.IS_PROD;
 
 module.exports = () => {
   passport.use('googleID', new CustomStrategy(async function(req, done) {
@@ -17,7 +17,7 @@ module.exports = () => {
         return done('googleID || token are missing', null);
 
       const isTokenValid = await verifyGoogleToken(tokenId);
-      if(!isTokenValid) return done('tokenId is invalid', null);
+      if(IS_PROD && !isTokenValid) return done('tokenId is invalid', null);
 
       let isExists = await conn.sql(`SELECT * FROM users WHERE googleID='${googleId}'`);
       if(isExists.length===0)
@@ -36,11 +36,12 @@ module.exports = () => {
       const profile     =   req.body;
       const facebookId  =   req.body.id;
       const tokenId     =   req.body.accessToken;
+
       if(!facebookId || !tokenId)
         return done('facebookID || token are missing', null);
 
       const isTokenValid = await verifyFacebookToken(tokenId);
-      if(!isTokenValid) return done('tokenId is invalid', null);
+      if(IS_PROD && !isTokenValid) return done('tokenId is invalid', null);
 
       let isExists = await conn.sql(`SELECT user_id FROM users WHERE facebookID='${facebookId}'`);
       if(isExists.length===0)
@@ -77,7 +78,7 @@ const verifyGoogleToken = async (tokenId) => {
 const verifyFacebookToken = async (tokenId) => {
   return new Promise((resolve, reject) => {
       const url = `https://graph.facebook.com/me?access_token=${tokenId}`;
-      axios.get(url).then((res) => {        
+      axios.get(url).then((res) => {
         if(res.data && res.data.id)
           return resolve(true);
 

@@ -16,6 +16,18 @@ const categories = async () =>{
 
                       PRIMARY KEY (category_id)
                   ) ENGINE=InnoDB`);
+
+  await conn.sql(`
+      INSERT INTO categories
+        (category_name)
+      VALUES
+        ('מזון'),
+        ('חד פעמי'),
+        ('אחזקת הבית'),
+        ('טיפוח ותינוקות'),
+        ('ביגוד'),
+        ('מוצרי חשמל')
+    `);
 }
 const brands = async () =>{
   await conn.sql(`CREATE TABLE brands (
@@ -42,8 +54,7 @@ const products = async () =>{
                       product_name VARCHAR(200) NOT NULL,
                       brand_id INT UNSIGNED NOT NULL,
                       capacity INT UNSIGNED NOT NULL,
-                      capacity_unit_id INT UNSIGNED,
-                      memo MEDIUMTEXT,
+                      capacity_unit_id INT UNSIGNED,                      
                       verifiedCounter INT NOT NULL DEFAULT 3,
 
                       PRIMARY KEY (barcode),

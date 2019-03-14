@@ -12,4 +12,5 @@ module.exports = async () => {
   await createLists();
   await createNotifications();
   await createShoppingCarts();
+  console.log("*** DB was initialized ***");
 }

@@ -1,6 +1,6 @@
 const mysql = require('mysql');
 const conn  = mysql.createPool({
-  host: "localhost",
+  host: process.env.isProd ? 'remote hostname' : 'localhost',
   user: "gulo",
   password: "shenkar",
   database: "gulo",

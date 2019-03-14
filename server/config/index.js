@@ -1,4 +1,9 @@
-const RES_ERROR = require('./errors/res_error');
+const path      =   require('path');
+const RES_ERROR =   require('./errors/res_error');
+
+process.env.PWD = path.join(__dirname, '../');
+if(process.env.NODE_ENV==='PROD')
+  process.env.IS_PROD = true;
 
 module.exports = {
   PORT:         process.env.PORT || 9001,

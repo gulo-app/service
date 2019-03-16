@@ -5,8 +5,8 @@ const addList = async (creator, newList) => {
     if(!newList.title)
       throw new ParamsError('title param is missing'); //check if params are missings
 
-
-    if(newList.shares && newList.shares.length>0){ //validate if shares[] are legal user_ids
+    //validate if shares[] are legal user_ids
+    if(newList.shares && newList.shares.length>0){ 
       for(let share_id of newList.shares){
         let user = await conn.sql(`SELECT * FROM users WHERE user_id=${share_id}`);
         if(user.length===0)
@@ -61,8 +61,22 @@ const deleteList = async (userId,listId) => {
   return;                        
 }
 
+const shareList = async (listId, user) => {
+  let user_id = await conn.sql(`SELECT user_id FROM users WHERE mail=${user}`);
+
+  if(user_id.length===0)
+      throw new ParamsError(`user id: ${user_id} not exists`);
+  
+  let cb = await conn.sql(`INSERT INTO list_shares (list_id, user_id) VALUES (${listId},${user_id})`);
+  
+  return {list_id: cb.list_id, user_id: user_id};
+} 
+
+
 module.exports = {
   addList,
   getAllLists,
-  updateList
+  updateList,
+  deleteList,
+  shareList
 }

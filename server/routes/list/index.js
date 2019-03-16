@@ -45,8 +45,21 @@ router.delete('/:id', auth, async (req,res) => {
   
   try {
     let cb = await ctrl.deleteList(req.user, listToDelete.list_id);
-    //get all lists of user after the delete??
+    //TODO: get all lists of user after the delete??
     res.send(true);
+  }catch(e){
+    RES_ERROR(res,e);
+  }
+})
+
+
+//share a list with user_id 
+router.put('/share', auth, async (req,res) => {
+  let share = _.pick(req.body,['user_mail','list_id']);
+
+  try {
+    let cb = await ctrl.shareList(share.list_id, share.user_mail);
+    res.send(cb);
   }catch(e){
     RES_ERROR(res,e);
   }

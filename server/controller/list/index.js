@@ -27,6 +27,42 @@ const addList = async (creator, newList) => {
     return {list_id: newListID, list_name: newList.title, user_id: creator.user_id, shares: newList.shares};
 }
 
+// get all lists that the user shares
+const getAllLists = async (user) => {
+  let cb = await conn.sql( `SELECT list_name, list_id FROM lists
+                            WHERE list_id IN 
+                            (SELECT list_id FROM lists WHERE user_id=${user.user_id}
+                            UNION
+                            SELECT list_id FROM list_shares WHERE user_id=${user.user_id})`);
+  
+  if(cb.length===0){
+    return 0;
+  }
+
+  return {listId: cb.list_id, listName: cb.list_name};
+}
+
+const updateList = async (listId,title) => {
+  if(!listId || !title)
+    throw new ParamsError('one of the param is missing or incorect');
+  
+  let cb = await conn.sql( `UPDATE lists 
+                            SET list_name=${title} 
+                            WHERE list_id=${listId} 
+                            RETURNING lists.list_name,lists.list_id`);
+  
+  return {list_id: cb.list_id, title: cb.list_name}; 
+}
+
+const deleteList = async (userId,listId) => {
+  let cb = await conn.sql( `DELETE FROM lists 
+                            WHERE list_id=${listId} AND user_id=${userId}`);
+                                            
+  return;                        
+}
+
 module.exports = {
-  addList
+  addList,
+  getAllLists,
+  updateList
 }

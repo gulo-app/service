@@ -16,7 +16,7 @@ const categories = async () =>{
 
                       PRIMARY KEY (category_id)
                   ) ENGINE=InnoDB`);
-
+  
   await conn.sql(`
       INSERT INTO categories
         (category_name)
@@ -54,7 +54,7 @@ const products = async () =>{
                       product_name VARCHAR(200) NOT NULL,
                       brand_id INT UNSIGNED NOT NULL,
                       capacity INT UNSIGNED NOT NULL,
-                      capacity_unit_id INT UNSIGNED,                      
+                      capacity_unit_id INT UNSIGNED,
                       verifiedCounter INT NOT NULL DEFAULT 3,
 
                       PRIMARY KEY (barcode),

@@ -16,7 +16,7 @@ router.get('/', auth, async (req,res) => {
 })
 
 //create new list {title: '', user_id: '', shares: [11,33..etc]}
-router.post('/', auth, async (req,res) => { 
+router.post('/', auth, async (req,res) => {
   let newList = _.pick(req.body, ['title', 'shares']);
   try{
     let cb = await ctrl.addList(req.user, newList);
@@ -27,12 +27,13 @@ router.post('/', auth, async (req,res) => {
 })
 
 
-//update specific list by id 
-router.put('/:id', auth, async (req,res) => {
-  let list = _.pick(req.body,['title','list_id']);
-
+//update specific list by id
+router.put('/:list_id', auth, async (req,res) => {
+  let {title}   = req.body;
+  let {list_id} = req.params;
+  let {user_id} = req.user;
   try {
-    let cb = await ctrl.updateList(list.list_id, list.title);
+    let cb = await ctrl.updateList(user_id, list_id, title);
     res.send(cb);
   }catch(e){
     RES_ERROR(res,e);
@@ -40,25 +41,24 @@ router.put('/:id', auth, async (req,res) => {
 })
 
 // delete list by id
-router.delete('/:id', auth, async (req,res) => {
-  let listToDelete = _.pick(req.body, ['list_id']);
-  
+router.delete('/:list_id', auth, async (req,res) => {
+  let {list_id} = req.params;
   try {
-    let cb = await ctrl.deleteList(req.user, listToDelete.list_id);
-    //TODO: get all lists of user after the delete??
-    res.send(true);
+    let cb = await ctrl.deleteList(req.user.user_id, list_id);
+    res.send();
   }catch(e){
     RES_ERROR(res,e);
   }
 })
 
 
-//share a list with user_id 
-router.put('/share', auth, async (req,res) => {
-  let share = _.pick(req.body,['user_mail','list_id']);
-
+//share a list with user_id
+router.put('/:list_id/share', auth, async (req,res) => {
+  let {shares}  = req.body; //[user_id, user_id, ...]
+  let {user_id} = req.user;
+  let {list_id} = req.params;
   try {
-    let cb = await ctrl.shareList(share.list_id, share.user_mail);
+    let cb = await ctrl.shareList(user_id, list_id, shares);
     res.send(cb);
   }catch(e){
     RES_ERROR(res,e);

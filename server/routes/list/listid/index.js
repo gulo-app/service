@@ -5,8 +5,8 @@ const auth              =   require('../../../middleware/auth');
 const {RES_ERROR}       =   require('../../../config');
 
 
-//TODO: Add GET list id (all products in list)
-router.get('/:list_id', auth, async (req,res) => {
+//get list id (all products in list)
+router.get('/', auth, async (req,res) => {
     let {list_id} = req.params;
     let {user_id} = req.user;
     try {
@@ -17,11 +17,15 @@ router.get('/:list_id', auth, async (req,res) => {
     }
 })
 
+
 //update specific list by id
-router.put('/:list_id', auth, async (req,res) => {
+router.put('/', auth, async (req,res) => {
     let {title}   = req.body;
     let {list_id} = req.params;
     let {user_id} = req.user;
+    console.log(user_id);
+    console.log(list_id);
+    console.log(title);
     try {
       let cb = await ctrl.updateList(user_id, list_id, title);
       res.send(cb);
@@ -32,10 +36,11 @@ router.put('/:list_id', auth, async (req,res) => {
   
  
 // delete list by id
-router.delete('/:list_id', auth, async (req,res) => {
+router.delete('/', auth, async (req,res) => {
     let {list_id} = req.params;
+    let {user_id} = req.user;
     try {
-      let cb = await ctrl.deleteList(req.user.user_id, list_id);
+      let cb = await ctrl.deleteList(user_id, list_id);
       res.send();
     }catch(e){
       RES_ERROR(res,e);
@@ -43,7 +48,7 @@ router.delete('/:list_id', auth, async (req,res) => {
   })
 
 //share a list with user_id
-router.put('/:list_id/share', auth, async (req,res) => {
+router.put('/share', auth, async (req,res) => {
     let {shares}  = req.body; //[user_id, user_id, ...]
     let {user_id} = req.user;
     let {list_id} = req.params;

@@ -4,6 +4,8 @@ const _                 =   require('lodash');
 const auth              =   require('../../middleware/auth');
 const {RES_ERROR}       =   require('../../config');
 
+router.use('/:listid', require('./listid'));
+
 //get all lists by userId
 router.get('/', auth, async (req,res) => {
   try {

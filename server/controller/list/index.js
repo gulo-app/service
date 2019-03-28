@@ -45,14 +45,7 @@ const updateList = async (user_id, list_id, title) => {
   if(!list_id || !title)
     throw new ParamsError('one of the param is missing or incorect');
 
-  let isListBelongsToUser =  await conn.sql(`SELECT *
-                                                FROM lists
-                                                WHERE list_id IN
-                                                (SELECT list_id FROM lists WHERE user_id=${user_id} AND list_id=${list_id}
-                                                UNION
-                                                SELECT list_id FROM list_shares WHERE user_id=${user_id} AND list_id=${list_id})
-                                            `);
-  if(isListBelongsToUser.length===0)
+  if(!isListBelongsToUser(user_id,list_id))
     throw new AuthError(`user_id: ${user_id} has no permission to change list_id: ${list_id}`);
 
   let cb = await conn.sql( `UPDATE lists
@@ -89,10 +82,42 @@ const shareList = async (user_id, list_id, shares) => {
       await conn.sql(`INSERT INTO list_shares (list_id, user_id) VALUES (${list_id}, ${share_id})`);
       sharedUsers.push(share_id);
     }catch(e){
-      console.log(`failed to share list<${list_id}> to user<${share_id}>`);
+      console.log(`failed to share list: ${list_id} to user: ${share_id}`);
     }
   }
   return {sharedUsers};
+}
+
+const getListProducts = async (user_id, list_id) => {
+  if(!isListBelongsToUser(user_id, list_id))
+    throw new AuthError(`user_id: ${user_id} has no permission to change list_id: ${list_id}`);
+  
+  let products = await conn.sql(`SELECT * FROM list_products WHERE list_id=${list_id}`);
+
+  if(products.length===0)
+    return false;
+
+  return products;
+}
+
+/**
+ * validate user's permission to list
+ * @returns false - if list is not belong to the user
+ *          true - list belong to user
+ */
+const isListBelongsToUser = async (user_id, list_id) => {
+  let listBelongToUser =  await conn.sql(`SELECT *
+                                          FROM lists
+                                          WHERE list_id IN
+                                          (SELECT list_id FROM lists WHERE user_id=${user_id} AND list_id=${list_id}
+                                          UNION
+                                          SELECT list_id FROM list_shares WHERE user_id=${user_id} AND list_id=${list_id})
+                                        `);
+
+  if(listBelongToUser.length===0) 
+    return false;
+  
+  return true;  
 }
 
 module.exports = {
@@ -100,5 +125,6 @@ module.exports = {
   getAllLists,
   updateList,
   deleteList,
-  shareList
+  shareList,
+  getListProducts
 }

@@ -27,6 +27,7 @@ const addList = async (creator, newList) => {
     return {list_id: newListID, list_name: newList.title, user_id: creator.user_id, shares: newList.shares};
 }
 
+
 // get all lists that the user shares
 const getAllLists = async (user) => {
   let lists = await conn.sql(`SELECT list_name, list_id FROM lists
@@ -41,14 +42,19 @@ const getAllLists = async (user) => {
   return lists;
 }
 
+
 const updateList = async (user_id, list_id, title) => {
+  console.log(user_id);
+  console.log(list_id);
+  console.log(title);
   if(!list_id || !title)
     throw new ParamsError('one of the param is missing or incorect');
 
-  if(!isListBelongsToUser(user_id,list_id))
+  let listBelongsUser = await isListBelongsToUser(user_id,list_id);  
+  if(!listBelongsUser)
     throw new AuthError(`user_id: ${user_id} has no permission to change list_id: ${list_id}`);
 
-  let cb = await conn.sql( `UPDATE lists
+  let cb = await conn.sql(`UPDATE lists
                             SET list_name='${title}'
                             WHERE list_id=${list_id}
                           `);
@@ -59,6 +65,7 @@ const updateList = async (user_id, list_id, title) => {
   return;
 }
 
+
 const deleteList = async (user_id, list_id) => {
   let cb1 = await conn.sql(`DELETE FROM lists WHERE list_id=${list_id} AND user_id=${user_id}`);
   let cb2 = await conn.sql(`DELETE FROM list_shares WHERE list_id=${list_id} AND user_id=${user_id}`);
@@ -67,6 +74,7 @@ const deleteList = async (user_id, list_id) => {
     throw new AuthError(`permission denied`);
   return;
 }
+
 
 const shareList = async (user_id, list_id, shares) => {
   if(!user_id || !list_id || !shares || shares.length===0)
@@ -88,6 +96,7 @@ const shareList = async (user_id, list_id, shares) => {
   return {sharedUsers};
 }
 
+
 const getListProducts = async (user_id, list_id) => {
   if(!isListBelongsToUser(user_id, list_id))
     throw new AuthError(`user_id: ${user_id} has no permission to change list_id: ${list_id}`);
@@ -99,6 +108,7 @@ const getListProducts = async (user_id, list_id) => {
 
   return products;
 }
+
 
 /**
  * validate user's permission to list

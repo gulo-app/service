@@ -136,5 +136,6 @@ module.exports = {
   updateList,
   deleteList,
   shareList,
-  getListProducts
+  getListProducts,
+  isListBelongsToUser
 }

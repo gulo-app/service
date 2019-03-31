@@ -71,6 +71,7 @@ router.delete('/:listid', auth, async (req,res) => {
   }
 })
 
+
 //share a list with user_id
 router.put('/:listid/share', auth, async (req,res) => {
   let {shares}  = req.body; //[user_id, user_id, ...]

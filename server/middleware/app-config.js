@@ -18,7 +18,7 @@ module.exports = (app) => {
   app.use(bodyParser.raw());
 
   app.use(function(req, res, next) { //allow CORS origins
-    var allowedOrigins = ['http://localhost', 'http://localhost:*', 'http://localhost:3000'];
+    var allowedOrigins = ['http://localhost', 'http://localhost:*', 'http://localhost:3000', 'https://gulo-client.herokuapp.com/login', 'http://gulo-client.herokuapp.com/login'];
     var origin = req.headers.origin;
     if(allowedOrigins.indexOf(origin) > -1){
          res.setHeader('Access-Control-Allow-Origin', origin);

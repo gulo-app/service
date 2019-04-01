@@ -58,7 +58,6 @@ const scan = async(device, barcode) => {
     throw new ScanError('product not exists on inventory');
   }
 
-
   if(!await insertProduct(list_id, product.barcode))
     throw new ScanError('insert product to list failed');
 

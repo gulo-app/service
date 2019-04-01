@@ -4,7 +4,6 @@ const _                 =   require('lodash');
 const auth              =   require('../../middleware/auth');
 const {RES_ERROR}       =   require('../../config');
 
-
 router.post('/scan/:barcode', async (req,res) => {
   try{
     let device  =   _.pick(req.body, ['id','password']);

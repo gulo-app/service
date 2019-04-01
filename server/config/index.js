@@ -2,7 +2,7 @@ const path      =   require('path');
 const RES_ERROR =   require('./errors/res_error');
 
 process.env.PWD = path.join(__dirname, '../');
-if(process.env.NODE_ENV==='production' )
+if(process.env.NODE_ENV==='production')
   process.env.IS_PROD = true;
 
 module.exports = {

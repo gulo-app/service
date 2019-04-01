@@ -5,6 +5,8 @@ const auth              =   require('../../middleware/auth');
 const {RES_ERROR}       =   require('../../config');
 
 
+/*      /list      */
+
 router.use('/:list_id(\\d+)/', (req,res,next) => {
   req.list_id = req.params.list_id;
   next();

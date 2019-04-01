@@ -19,16 +19,18 @@ router.post('/google', (req, res) => {
 });
 
 router.post('/facebook', (req, res) => {
-  passport.authenticate('facebookID', (err, user) => {
-    if(err)
-      return res.status(500).send(err);
-    if(!user)
-      return res.status(500).send('Credentials Inavlid');
+  try{
+    passport.authenticate('facebookID', (err, user) => {
+      if(err)
+        return res.status(500).send(err);
+      if(!user)
+        return res.status(500).send('Credentials Inavlid');
 
-    req.login(user, (err) => {
-      return res.send(user);
-    })
-  })(req, res);
+      req.login(user, (err) => {
+        return res.send(user);
+      })
+    })(req, res);
+  }catch(e){RES_ERROR(res, e)};
 });
 
 router.post('/auth-test', auth, (req,res) => {

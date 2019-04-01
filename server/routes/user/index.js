@@ -13,6 +13,11 @@ router.post('/logout', auth, (req,res) => {
   res.send(`goodbye`);
 })
 
-
+router.use('/getAllUsersButMe', auth, async (req,res) => {
+  try{
+    let users = await ctrl.getAllUsersButMe(req.user.user_id);
+    res.send(users);
+  }catch(e){RES_ERROR(res, e)};
+})
 
 module.exports = router;

@@ -1,9 +1,10 @@
 const express = require('express')
 const router = express.Router();
 
-router.use('/db',  require('./db'));
+router.use('/db',    require('./db'));
 router.use('/list',  require('./list'));
 router.use('/user',  require('./user'));
+router.use('/device',require('./device'));
 
 router.get('/', (req, res) => {
     console.log(req.sessionID);

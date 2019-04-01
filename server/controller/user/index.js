@@ -56,10 +56,16 @@ const register = async (user) => {
 
 }
 
+const getAllUsersButMe = async (myUserID) => {
+  let sql = `SELECT user_id, mail, CONCAT(firstname, ' ', lastname) AS fullname, pic FROM users WHERE user_id<>${myUserID}`;
+  return await conn.sql(sql);
+}
+
 module.exports = {
   register,
   getUserByMail,
   GoogleRegister,
   FacebookRegister,
-  setProfilePic
+  setProfilePic,
+  getAllUsersButMe
 }

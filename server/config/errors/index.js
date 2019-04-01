@@ -18,8 +18,19 @@ class AuthError extends Error{
   }
 }
 
+class ScanError extends Error{
+  constructor(message) {
+    super(message);
+    this.name = this.constructor.name;
+    Error.captureStackTrace(this, this.constructor);
+    this.status = 402;
+    this.isCB   = true;
+  }
+}
+
 
 module.exports = {
   ParamsError,
-  AuthError
+  AuthError,
+  ScanError
 }

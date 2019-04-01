@@ -10,3 +10,5 @@ module.exports = {
   RES_ERROR,    //const Error callback,
   GOOGLE_CID:   '180978526897-8o5c4k9vakqt2eqfbgd2u9ng5jaobl4j.apps.googleusercontent.com'
 };
+
+//heroku logs --source app --tail

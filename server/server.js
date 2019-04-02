@@ -18,12 +18,12 @@ const server = async () => {
 
       const httpsServer = https.createServer(ssl_credentials, app);
       httpsServer.listen(PORT, () => {
-       console.log(`listenting SSL on ${PORT}`);
+       console.log(`listening on https:${PORT}`);
       });
   } else {
       const httpServer = http.createServer(app);
       httpServer.listen(PORT, async () => {
-        console.log(`service running on: ${PORT}`);
+        console.log(`listening on http: ${PORT}`);
       });
   }
 }

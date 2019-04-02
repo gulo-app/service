@@ -7,16 +7,12 @@ process.env.PWD = path.join(__dirname, '../');
 switch(process.env.NODE_ENV){
   case 'production':
     process.env.IS_PROD = true;
-    PORT = process.env.PORT;
     break;
   case 'montv':
     process.env.IS_MONTV = true;
-    PORT = 9399;
-    console.log("running on montv production");
     break;
-  default:
-    PORT = 9001;
 }
+PORT = process.env.PORT || 9400;
 
 module.exports = {
   PORT,

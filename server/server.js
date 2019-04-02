@@ -1,29 +1,29 @@
+const https       =   require('https');
+const http       =   require('http');
 const app         =   require('express')();
 const {PORT}      =   require('./config');
 const appConfig   =   require('./middleware/app-config');
 const conn        =   require('./db/connection');
 const routes      =   require('./routes');
 const fs          =   require('fs');
-const https = require('https');
 
 const server = async () => {
   appConfig(app);
   app.use('/', routes);
 
-  app.listen(PORT, async () => {
-    console.log(`service running on: ${PORT}`);
-  });
 
+  //create HTTP(dev) || HTTPS(prod) server
   if(process.env.IS_MONTV){  //montv production provide SSL connection
-      var ssl_credentials = {
-        key:  fs.readFileSync(`../../nodejs/montv-service/server/security/ssl/montv.pem`, 'utf8'),
-        cert: fs.readFileSync(`../../nodejs/montv-service/server/security/ssl/montv.cer`, 'utf8')
-      };
+      var ssl_credentials = {key:  fs.readFileSync(`../../nodejs/montv-service/server/security/ssl/montv.pem`, 'utf8'), cert: fs.readFileSync(`../../nodejs/montv-service/server/security/ssl/montv.cer`, 'utf8')};
 
-      let SSL_PORT = PORT+1;
-      var httpsServer = https.createServer(ssl_credentials, app);
-      httpsServer.listen(SSL_PORT, () => {
-       console.log(`listenting SSL on ${SSL_PORT}`);
+      const httpsServer = https.createServer(ssl_credentials, app);
+      httpsServer.listen(PORT, () => {
+       console.log(`listenting SSL on ${PORT}`);
+      });
+  } else {
+      const httpServer = http.createServer(app);
+      httpServer.listen(PORT, async () => {
+        console.log(`service running on: ${PORT}`);
       });
   }
 }

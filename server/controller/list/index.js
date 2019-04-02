@@ -2,6 +2,7 @@ const conn                        =   require('../../db/connection');
 const {ParamsError, AuthError}    =   require('../../config/errors');
 const {verifyDevice, isDeviceConnected}              =   require('../device');
 const {getList}                   =   require('./list_id')
+const {getListProducts}           =   require('./list_id/product');
 
 const addList = async (creator, newList) => { //create new list {list_name, list_type, device_id, device_password, shares: []}
     if(Object.keys(newList).length!==5 || !newList.list_name || !newList.list_type)
@@ -33,7 +34,7 @@ const getAllLists = async (user) => {
   let lists = await conn.sql(`
                 SELECT lists.*, COUNT(lp.barcode) as total_products, lt.*, users.mail as creator_mail
                 FROM (
-                        SELECT list_name, list_id, list_type_id, user_id FROM lists
+                        SELECT list_name, list_id, list_type_id, user_id, device_id FROM lists
                         WHERE list_id IN
                         (SELECT list_id FROM lists WHERE user_id=${user.user_id}
                         UNION
@@ -44,6 +45,8 @@ const getAllLists = async (user) => {
                 NATURAL JOIN users
                 GROUP BY list_id
               `);
+  for(let list of lists)
+    list.products = await getListProducts(list.list_id);
 
   return lists;
 }

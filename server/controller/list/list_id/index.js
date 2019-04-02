@@ -14,6 +14,7 @@ const getList = async (list_id) => {
 
   if(list.length===0)
     return null;
+  list[0].products  =   [];
   return list[0];
 }
 

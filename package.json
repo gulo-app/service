@@ -5,8 +5,9 @@
   "main": "index.js",
   "scripts": {
     "crawler:products": "node ./server/controller/db/crawler/products",
-    "dev":  "SET NODE_ENV=DEV&&nodemon index.js",
-    "prod": "SET NODE_ENV=production&&node index.js"
+    "dev":    "SET NODE_ENV=DEV&&nodemon index.js",
+    "prod":   "SET NODE_ENV=production&&node index.js",
+    "montv":  "SET NODE_ENV=montv&&node index.js"
   },
   "author": "Tomer Flom & Ligal Levy",
   "license": "ISC",

@@ -7,7 +7,8 @@ router.use('/user',  require('./user'));
 router.use('/device',require('./device'));
 
 router.get('/', (req, res) => {
-    console.log(req.sessionID);
+    //let io = req.app.get('socket');
+    //console.log(socket.id);
     res.send("this is index baby");
 });
 

@@ -6,7 +6,6 @@ const appConfig   =   require('./middleware/app-config');
 const conn        =   require('./db/connection');
 const routes      =   require('./routes');
 const fs          =   require('fs');
-//const ee          =   require('eventEmitter');
 const socket      =   require('./socket');
 
 const server = async () => {
@@ -18,18 +17,18 @@ const server = async () => {
       var ssl_credentials = {key:  fs.readFileSync(`../../nodejs/montv-service/server/security/ssl/montv.pem`, 'utf8'), cert: fs.readFileSync(`../../nodejs/montv-service/server/security/ssl/montv.cer`, 'utf8')};
 
       const httpsServer = https.createServer(ssl_credentials, app);
-      socket(httpsServer);
+      app.set('io', await socket(httpsServer));
       httpsServer.listen(PORT, () => {
        console.log(`listening on https:${PORT}`);
       });
 
   } else {
       const httpServer = http.createServer(app);
-      socket(httpServer);
+      await socket(httpServer, app);
       httpServer.listen(PORT, async () => {
         console.log(`listening on http: ${PORT}`);
       });
-  }  
+  }
 }
 
 module.exports = server;

@@ -2,6 +2,7 @@ const conn    =     require('../../../../db/connection');
 
 module.exports = async () => {
     await users();
+    await user_sockets();
     return;
 }
 
@@ -18,5 +19,14 @@ const users = async () => {
 
                               PRIMARY KEY (user_id),
                               UNIQUE KEY(mail)
+                    ) ENGINE=InnoDB`);
+}
+
+const user_sockets = async () => {
+  await conn.sql(`CREATE TABLE user_sockets (
+                              user_id     INT UNSIGNED    NOT NULL,
+                              socket_id   VARCHAR(100)    NOT NULL,
+
+                              PRIMARY KEY (user_id,socket_id)
                     ) ENGINE=InnoDB`);
 }

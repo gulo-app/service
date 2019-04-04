@@ -3,6 +3,7 @@ const generatePassword            =   require('generate-password');
 const _                           =   require('lodash');
 const {getProduct}                =   require('../product');
 const {insertProduct}             =   require('../list/list_id');
+const {getListProduct}            =   require('../list/list_id/product/product_id');
 const {ParamsError, AuthError, ScanError}    =   require('../../config/errors');
 
 const verifyDevice = async (device) => {
@@ -58,10 +59,11 @@ const scan = async(device, barcode) => {
     throw new ScanError('product not exists on inventory');
   }
 
-  if(!await insertProduct(list_id, product.barcode))
+  let product_id = await insertProduct(list_id, product.barcode);
+  if(!product_id)
     throw new ScanError('insert product to list failed');
 
-  return `${barcode} added to list:${list_id} successfully`;
+  return await getListProduct(list_id, product_id);
 }
 
 module.exports = {

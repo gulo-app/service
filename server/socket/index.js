@@ -1,12 +1,22 @@
 const serverIO    =   require('socket.io');
+const subsciption =   require('./subscription');
 
-module.exports = (server) => {
+module.exports = async (server, app) => {
   const io = serverIO(server);
-  io.on('connection', socket => {
-    console.log(`${socket.id} connected`)
+  app.set('io', io);
+  await subsciption.init();
+  await io.on('connection', socket => {
+    app.set('socket', socket);
+    socket.on('subscribe', async (user) => {
+      if(!user) return false;
+      socket.user = user;
+      await subsciption.on(socket);
+    });
 
-    socket.on('disconnect', (socket) => {
-      console.log(`${socket.id} disconnected`)
+    socket.on('disconnect', async () => {
+      if(!socket.user) return false;
+      await subsciption.off(socket);
     });
   });
+  return io;
 }

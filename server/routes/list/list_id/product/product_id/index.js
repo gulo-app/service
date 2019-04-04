@@ -4,6 +4,7 @@ const ctrl              =   require('../../../../../controller/list/list_id/prod
 const auth              =   require('../../../../../middleware/auth');
 const {RES_ERROR}       =   require('../../../../../config');
 const {ParamsError}     =   require('../../../../../config/errors');
+const socketEmitter     =   require('../../../../../controller/socket/emitter');
 
 /*      list/:list_id/product/:product_id      */
 
@@ -24,8 +25,9 @@ router.get('/', async (req,res) => {
 
 router.post('/toggleCheck', async (req,res) => {
   try{
-    await ctrl.toggleCheck(req.list_id, req.product_id);
-    res.send();
+    let productListCB = await ctrl.toggleCheck(req.list_id, req.product_id);
+    await socketEmitter.emitByList(req.app.get('io'), req.list_id, 'updateListProduct' , productListCB);
+    res.send(productListCB);
   }catch(e){RES_ERROR(res,e)}
 })
 module.exports = router;

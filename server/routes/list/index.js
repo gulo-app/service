@@ -3,6 +3,7 @@ const ctrl              =   require('../../controller/list');
 const _                 =   require('lodash');
 const auth              =   require('../../middleware/auth');
 const {RES_ERROR}       =   require('../../config');
+const socketEmitter     =   require('../../controller/socket/emitter');
 
 
 /*      /list      */
@@ -27,8 +28,9 @@ router.get('/', auth, async (req,res) => {
 router.post('/', auth, async (req,res) => {
   let newList = _.pick(req.body, ['list_name', 'list_type', 'device_id', 'device_password', 'shares']);
   try{
-    let cb = await ctrl.addList(req.user, newList);
-    res.send(cb);
+    let newListCB = await ctrl.addList(req.user, newList, req.app.get('io'));
+    await socketEmitter.emitByList(req.app.get('io'), newListCB.list_id, 'newList' , newListCB);
+    res.send(newListCB);
   }catch(e){RES_ERROR(res, e)}
 })
 

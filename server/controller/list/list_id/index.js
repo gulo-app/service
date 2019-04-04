@@ -1,5 +1,6 @@
-const conn            =   require('../../../db/connection');
-const {ParamsError, AuthError}   =   require('../../../config/errors');
+const conn                        =   require('../../../db/connection');
+const {ParamsError, AuthError}    =   require('../../../config/errors');
+const {getListProducts}           =   require('./product');
 
 const getList = async (list_id) => {
   let list = await conn.sql(`
@@ -14,7 +15,7 @@ const getList = async (list_id) => {
 
   if(list.length===0)
     return null;
-  list[0].products  =   [];
+  list[0].products  =   await getListProducts(list_id);
   return list[0];
 }
 
@@ -25,7 +26,7 @@ const insertProduct = async (list_id, barcode, quantity) => {
       INSERT INTO list_products (list_id,  barcode, quantity) VALUES (${list_id}, ${barcode}, ${quantity})
       ON DUPLICATE KEY UPDATE quantity = quantity+${quantity}
     `);
-    return true;
+    return cb.insertId;
   }catch(e){
     console.log(e.message);
     return false;

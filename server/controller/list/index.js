@@ -17,16 +17,17 @@ const addList = async (creator, newList) => { //create new list {list_name, list
     //start insert into DB:
     let cb = await conn.sql(`INSERT INTO lists (user_id, list_name, list_type_id, device_id) VALUES (${creator.user_id},'${newList.list_name}', ${newList.list_type}, ${device.id || null})`);
     let newListID = cb.insertId;
+    let newListCB = await getList(newListID);
 
     if(newList.shares && newList.shares.length>0){ //insert shares(if exists) into list_shares table
       for(let share of newList.shares){
         let user = await conn.sql(`SELECT user_id FROM users WHERE user_id=${share.user_id}`);
-        if(user.length>0)
+        if(user.length>0){
           await conn.sql(`INSERT INTO list_shares (list_id, user_id) VALUES (${newListID},${share.user_id})`);
+        }
       }
     }
-
-    return await getList(newListID);
+    return newListCB;
 }
 
 // get all lists that the user shares

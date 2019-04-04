@@ -17,7 +17,7 @@ const server = async () => {
       var ssl_credentials = {key:  fs.readFileSync(`../../nodejs/montv-service/server/security/ssl/montv.pem`, 'utf8'), cert: fs.readFileSync(`../../nodejs/montv-service/server/security/ssl/montv.cer`, 'utf8')};
 
       const httpsServer = https.createServer(ssl_credentials, app);
-      await socket(httpServer, app);
+      await socket(httpsServer, app);
       httpsServer.listen(PORT, () => {
        console.log(`listening on https:${PORT}`);
       });

@@ -4,7 +4,6 @@ const subsciption =   require('./subscription');
 module.exports = async (server, app) => {
   const io = serverIO(server);
   app.set('io', io);
-  await subsciption.init();
   await io.on('connection', socket => {
     app.set('socket', socket);
     socket.on('subscribe', async (user) => {

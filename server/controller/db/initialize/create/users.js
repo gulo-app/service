@@ -2,7 +2,7 @@ const conn    =     require('../../../../db/connection');
 
 module.exports = async () => {
     await users();
-    await user_sockets();
+    //await user_sockets();
     return;
 }
 

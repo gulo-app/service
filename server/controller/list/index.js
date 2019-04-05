@@ -1,10 +1,11 @@
 const conn                        =   require('../../db/connection');
 const {ParamsError, AuthError}    =   require('../../config/errors');
 const {verifyDevice, isDeviceConnected}              =   require('../device');
-const {getList}                   =   require('./list_id')
+const {getList, getListShares, getListCreator, getListDevice}       =   require('./list_id')
 const {getListProducts}           =   require('./list_id/product');
+const socketEmitter               =   require('../../controller/socket/emitter');
 
-const addList = async (creator, newList) => { //create new list {list_name, list_type, device_id, device_password, shares: []}
+const addList = async (creator, newList, io) => { //create new list {list_name, list_type, device_id, device_password, shares: []}
     if(Object.keys(newList).length!==5 || !newList.list_name || !newList.list_type)
       throw new ParamsError('title param is missing'); //check if params are missings
 
@@ -27,83 +28,34 @@ const addList = async (creator, newList) => { //create new list {list_name, list
         }
       }
     }
+
+    await socketEmitter.emitByList(io, newListCB.list_id, 'newList' , newListCB);
     return newListCB;
 }
 
 // get all lists that the user shares
 const getAllLists = async (user) => {
   let lists = await conn.sql(`
-                SELECT lists.*, COUNT(lp.barcode) as total_products, lt.*, users.mail as creator_mail
-                FROM (
-                        SELECT list_name, list_id, list_type_id, user_id, device_id FROM lists
-                        WHERE list_id IN
-                        (SELECT list_id FROM lists WHERE user_id=${user.user_id}
+               SELECT lists.list_id, lists.list_name, lt.*,
+                      COUNT(lp.barcode) as total_products
+               FROM lists
+               LEFT JOIN list_products lp ON lp.list_id=lists.list_id
+               LEFT JOIN list_types lt ON lt.list_type_id=lists.list_type_id
+               WHERE lists.list_id IN
+                   (   SELECT list_id FROM lists WHERE user_id=${user.user_id}
                         UNION
-                        SELECT list_id FROM list_shares WHERE user_id=${user.user_id})
-                ) lists
-                LEFT JOIN list_products lp ON lp.list_id=lists.list_id
-                LEFT JOIN list_types lt ON lt.list_type_id=lists.list_type_id
-                NATURAL JOIN users
-                GROUP BY list_id
+                       SELECT list_id FROM list_shares WHERE user_id=${user.user_id}
+                    )
+               GROUP BY list_id
               `);
-  for(let list of lists)
+  for(let list of lists){
     list.products = await getListProducts(list.list_id);
+    list.shares   = await getListShares(list.list_id);
+    list.creator  = await getListCreator(list.list_id);
+    list.device   = await getListDevice(list.list_id) || {};
+  }
 
   return lists;
-}
-
-const updateList = async (user_id, list_id, title) => {
-  if(!list_id || !title)
-    throw new ParamsError('one of the param is missing or incorect');
-
-  let isListBelongsToUser =  await conn.sql(`SELECT *
-                                                FROM lists
-                                                WHERE list_id IN
-                                                (SELECT list_id FROM lists WHERE user_id=${user_id} AND list_id=${list_id}
-                                                UNION
-                                                SELECT list_id FROM list_shares WHERE user_id=${user_id} AND list_id=${list_id})
-                                            `);
-  if(isListBelongsToUser.length===0)
-    throw new AuthError(`user_id: ${user_id} has no permission to change list_id: ${list_id}`);
-
-  let cb = await conn.sql( `UPDATE lists
-                            SET list_name='${title}'
-                            WHERE list_id=${list_id}
-                          `);
-
-  if(cb.affectedRows===0)
-    throw new ParamsError('error. rename failed');
-
-  return;
-}
-
-const deleteList = async (user_id, list_id) => {
-  let cb1 = await conn.sql(`DELETE FROM lists WHERE list_id=${list_id} AND user_id=${user_id}`);
-  let cb2 = await conn.sql(`DELETE FROM list_shares WHERE list_id=${list_id} AND user_id=${user_id}`);
-
-  if(cb1.affectedRows===0 && cb2.affectedRows===0)
-    throw new AuthError(`permission denied`);
-  return;
-}
-
-const shareList = async (user_id, list_id, shares) => {
-  if(!user_id || !list_id || !shares || shares.length===0)
-      throw new ParamsError(`user_id || list_id || shares params are missing`);
-
-  let isUserOwnList = await conn.sql(`SELECT list_id FROM lists WHERE user_id=${user_id} AND list_id=${list_id}`);
-  if(isUserOwnList.length===0)
-    throw new AuthError(`permission denied`);
-
-  let sharedUsers = [];
-  for(let share_id of shares){
-    try{
-      await conn.sql(`INSERT INTO list_shares (list_id, user_id) VALUES (${list_id}, ${share_id})`);
-      sharedUsers.push(share_id);
-    }catch(e){
-      console.log(`failed to share list<${list_id}> to user<${share_id}>`);
-    }
-  }
-  return {sharedUsers};
 }
 
 const getTypes = async () => {
@@ -113,8 +65,5 @@ const getTypes = async () => {
 module.exports = {
   addList,
   getAllLists,
-  updateList,
-  deleteList,
-  shareList,
-  getTypes
+  getTypes,
 }

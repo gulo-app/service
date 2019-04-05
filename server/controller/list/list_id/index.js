@@ -1,23 +1,78 @@
 const conn                        =   require('../../../db/connection');
 const {ParamsError, AuthError}    =   require('../../../config/errors');
 const {getListProducts}           =   require('./product');
+const socketEmitter               =   require('../../../controller/socket/emitter');
 
 const getList = async (list_id) => {
   let list = await conn.sql(`
-          SELECT lists.*, COUNT(lp.barcode) as total_products, lt.*, users.mail as creator_mail
-          FROM lists
-          LEFT JOIN list_products lp ON lp.list_id=lists.list_id
-          NATURAL JOIN list_types lt
-          NATURAL JOIN users
-          WHERE lists.list_id=${list_id}
-          GROUP BY lists.list_id
-  `);
-
+               SELECT lists.list_id, lists.list_name, lt.*,
+                      COUNT(lp.barcode) as total_products
+               FROM lists
+               LEFT JOIN list_products lp ON lp.list_id=lists.list_id
+               LEFT JOIN list_types lt ON lt.list_type_id=lists.list_type_id
+               WHERE lists.list_id=${list_id}
+              `);
   if(list.length===0)
     return null;
-  list[0].products  =   await getListProducts(list_id);
-  return list[0];
+
+  list = list[0];
+  list.products = await getListProducts(list.list_id);
+  list.shares   = await getListShares(list.list_id);
+  list.creator  = await getListCreator(list.list_id);
+  list.device   = await getListDevice(list.list_id) || {};
+
+  return list;
 }
+
+const deleteList = async (user, list, io) => {
+  if(user.mail===list.creator.mail){ //user is the creator. delete entire list!
+    await socketEmitter.emitByList(io, list.list_id, 'listDeleted' , list.list_id);
+    await conn.sql(`DELETE FROM lists WHERE list_id=${list.list_id} AND user_id=${user.user_id}`);    
+  } else {
+    await conn.sql(`DELETE FROM list_shares WHERE list_id=${list.list_id} AND user_id=${user.user_id}`);
+    await socketEmitter.emitByUser(io, user.user_id, 'listDeleted' , list.list_id);
+  }
+
+  list = await getList(list.list_id); //null or list with 1 less share
+  if(list)
+    await socketEmitter.emitByList(io, list.list_id, 'listUpdated' , list);
+  return list;
+}
+
+
+const updateList = async (list, user, io) => {
+  if(!list.list_name || !list.creator || !list.list_type)
+    throw new ParamsError('one of the param is missing or incorect');
+
+  if(!list.isCreator)
+    throw new AuthError(`user_id: ${user.user_id} has no permission to change list_id: ${list.list_id}`);
+
+  let device = {id: list.device_id, password: list.device_password};
+  if(device.id && await verifyDevice(device)===false)
+    throw new ParamsError("device details invalid");
+  if(device.id && await isDeviceConnected(device.id))
+    throw new ParamsError("device already connected");
+
+  for(delShare of list.shares_deleted){
+    await conn.sql(`DELETE FROM list_shares WHERE user_id=${delShare.user_id} AND list_id=${list.list_id}`);
+    await socketEmitter.emitByUser(io, delShare.user_id, 'listDeleted' , list.list_id);
+  }
+  for(newShare of list.shares_inserted){
+    await conn.sql(`INSERT INTO list_shares (user_id, list_id) VALUES (${newShare.user_id}, ${list.list_id})`);
+  }
+
+  let cb = await conn.sql(`UPDATE lists SET list_name='${list.list_name}', list_type_id=${list.list_type}, device_id=${device.id || null}
+                           WHERE list_id=${list.list_id}`);
+
+  if(cb.affectedRows===0)
+    throw new ParamsError('error. update failed');
+
+  let updatedListCB = await getList(list.list_id);
+  await socketEmitter.emitByList(io, updatedListCB.list_id, 'listUpdated' , updatedListCB);
+
+  return updatedListCB;
+}
+
 
 const insertProduct = async (list_id, barcode, quantity) => {
   if(!quantity) quantity=1;
@@ -33,7 +88,46 @@ const insertProduct = async (list_id, barcode, quantity) => {
   }
 }
 
+const getListShares = async (list_id) => {
+  let sql = `
+    SELECT users.user_id, mail, CONCAT(firstname, ' ', lastname) AS fullname, pic
+    FROM list_shares
+    NATURAL JOIN users
+    WHERE list_id=${list_id}
+  `;
+  return await conn.sql(sql);
+}
+
+const getListCreator = async (list_id) => {
+  let creator = await conn.sql(`
+                  SELECT users.user_id, mail, CONCAT(firstname, ' ', lastname) AS fullname, pic
+                  FROM lists
+                  NATURAL JOIN users
+                  WHERE list_id=${list_id}
+                `);
+  if(creator.length===0)
+    return null
+  return creator[0];
+}
+
+const getListDevice = async (list_id) => {
+  let device = await conn.sql(`
+                SELECT devices.device_id as id, devices.password
+                FROM lists
+                NATURAL JOIN devices
+                WHERE list_id=${list_id}
+              `);
+  if(device.length===0)
+    return null;
+  return device[0];
+}
+
 module.exports = {
   getList,
-  insertProduct
+  updateList,
+  deleteList,
+  insertProduct,
+  getListShares,
+  getListCreator,
+  getListDevice
 }

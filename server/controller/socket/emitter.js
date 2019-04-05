@@ -1,5 +1,6 @@
 const conn = require('../../db/connection');
 
+
 const emitByList = async (io, list_id, eventName, payload) => {
   let list_users = await conn.sql(`
     SELECT user_id
@@ -10,10 +11,17 @@ const emitByList = async (io, list_id, eventName, payload) => {
   `);
   for(let user of list_users)
     io.sockets.in(`user/${user.user_id}`).emit(eventName, payload);
-  
+
   return true;
 }
 
+const emitByUser = async (io, user_id, eventName, payload) => {
+  io.sockets.in(`user/${user_id}`).emit(eventName, payload);
+  return true;
+}
+
+
 module.exports = {
-  emitByList
+  emitByList,
+  emitByUser
 }

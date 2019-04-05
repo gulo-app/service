@@ -1,7 +1,7 @@
 const conn                        =   require('../../../db/connection');
 const {ParamsError, AuthError}    =   require('../../../config/errors');
 const {getListProducts}           =   require('./product');
-const socketEmitter               =   require('../../../controller/socket/emitter');
+const socketEmitter               =   require('../../socket/emitter');
 
 const getList = async (list_id) => {
   let list = await conn.sql(`
@@ -27,7 +27,7 @@ const getList = async (list_id) => {
 const deleteList = async (user, list, io) => {
   if(user.mail===list.creator.mail){ //user is the creator. delete entire list!
     await socketEmitter.emitByList(io, list.list_id, 'listDeleted' , list.list_id);
-    await conn.sql(`DELETE FROM lists WHERE list_id=${list.list_id} AND user_id=${user.user_id}`);    
+    await conn.sql(`DELETE FROM lists WHERE list_id=${list.list_id} AND user_id=${user.user_id}`);
   } else {
     await conn.sql(`DELETE FROM list_shares WHERE list_id=${list.list_id} AND user_id=${user.user_id}`);
     await socketEmitter.emitByUser(io, user.user_id, 'listDeleted' , list.list_id);
@@ -39,7 +39,6 @@ const deleteList = async (user, list, io) => {
   return list;
 }
 
-
 const updateList = async (list, user, io) => {
   if(!list.list_name || !list.creator || !list.list_type)
     throw new ParamsError('one of the param is missing or incorect');
@@ -48,9 +47,9 @@ const updateList = async (list, user, io) => {
     throw new AuthError(`user_id: ${user.user_id} has no permission to change list_id: ${list.list_id}`);
 
   let device = {id: list.device_id, password: list.device_password};
-  if(device.id && await verifyDevice(device)===false)
+  if(device.id && await require('../../device').verifyDevice(device)===false)
     throw new ParamsError("device details invalid");
-  if(device.id && await isDeviceConnected(device.id))
+  if(device.id && await require('../../device').isDeviceConnected(device.id))
     throw new ParamsError("device already connected");
 
   for(delShare of list.shares_deleted){

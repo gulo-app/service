@@ -1,9 +1,9 @@
 const conn                        =   require('../../db/connection');
 const {ParamsError, AuthError}    =   require('../../config/errors');
-const {verifyDevice, isDeviceConnected}              =   require('../device');
+const {verifyDevice, isDeviceConnected}    =   require('../device');
 const {getList, getListShares, getListCreator, getListDevice}       =   require('./list_id')
 const {getListProducts}           =   require('./list_id/product');
-const socketEmitter               =   require('../../controller/socket/emitter');
+const socketEmitter               =   require('../socket/emitter');
 
 const addList = async (creator, newList, io) => { //create new list {list_name, list_type, device_id, device_password, shares: []}
     if(Object.keys(newList).length!==5 || !newList.list_name || !newList.list_type)

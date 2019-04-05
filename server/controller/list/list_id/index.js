@@ -49,9 +49,7 @@ const updateList = async (list, user, io) => {
   let device = {id: list.device_id, password: list.device_password};
   if(device.id && await require('../../device').verifyDevice(device)===false)
     throw new ParamsError("device details invalid");
-  if(device.id && await require('../../device').isDeviceConnected(device.id))
-    throw new ParamsError("device already connected");
-
+  
   for(delShare of list.shares_deleted){
     await conn.sql(`DELETE FROM list_shares WHERE user_id=${delShare.user_id} AND list_id=${list.list_id}`);
     await socketEmitter.emitByUser(io, delShare.user_id, 'listDeleted' , list.list_id);

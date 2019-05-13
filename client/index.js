@@ -1,34 +1,32 @@
 const https       =   require('https');
-const http       =   require('http');
-const app         =   require('express')();
+const http        =   require('http');
+const express     =   require('express');
+const app         =   express();
 const {PORT}      =   require('./config');
-const appConfig   =   require('./middleware/app-config');
-const conn        =   require('./db/connection');
-const routes      =   require('./routes');
 const fs          =   require('fs');
-const socket      =   require('./socket');
+const path        =   require('path');
 
-const server = async () => {
-  appConfig(app);
-  app.use('/', routes);
+const client = async () => {
+  let buildPath = path.join(__dirname, '../client/_public/build');
+  app.use('/', express.static(buildPath)) //serve react manager client
+  app.get('/*', (req, res) => {
+    res.sendFile(path.join(buildPath, '/index.html'));
+  })
 
-  //create HTTP(dev) || HTTPS(prod) server
   if(process.env.IS_MONTV){  //montv production provide SSL connection
       var ssl_credentials = {key:  fs.readFileSync(`../../nodejs/montv-service/server/security/ssl/montv.pem`, 'utf8'), cert: fs.readFileSync(`../../nodejs/montv-service/server/security/ssl/montv.cer`, 'utf8')};
 
       const httpsServer = https.createServer(ssl_credentials, app);
-      await socket(httpsServer, app);
       httpsServer.listen(PORT, () => {
-       console.log(`SERVICE listening on https:${PORT}`);
+       console.log(`CLIENT listening on https:${PORT}`);
       });
 
   } else {
       const httpServer = http.createServer(app);
-      await socket(httpServer, app);
       httpServer.listen(PORT, async () => {
-        console.log(`SERVICE listening on http: ${PORT}`);
+        console.log(`CLIENT listening on http: ${PORT}`);
       });
   }
-}
+};
 
-module.exports = server;
+module.exports = client;

@@ -4,6 +4,8 @@ module.exports = async () => {
   await notification_types();
   await notification_types_status();
   await notifications();
+  await fill_types();
+  await fill_types_status();
   return;
 }
 
@@ -21,6 +23,7 @@ const notification_types_status = async () =>{
                       notification_type_id      INT UNSIGNED NOT NULL,
                       status                    INT NOT NULL,
                       status_topic              VARCHAR(100),
+                      isConfirm                 TINYINT(1) DEFAULT 0,
 
                       PRIMARY KEY (notification_type_id, status)
                   ) ENGINE=InnoDB`);
@@ -28,15 +31,16 @@ const notification_types_status = async () =>{
 
 const notifications = async () =>{
   await conn.sql(`CREATE TABLE notifications (
-                      notification_id           INT UNSIGNED NOT NULL,
+                      notification_id           INT UNSIGNED NOT NULL AUTO_INCREMENT,
                       notification_type_id      INT UNSIGNED NOT NULL,
                       status                    INT          NOT NULL,
                       notifier_id               INT UNSIGNED NOT NULL,
-                      id_1                      INT UNSIGNED,
-                      id_2                      INT UNSIGNED,
+                      triggerBy_id              INT UNSIGNED,
+                      subject_id                INT UNSIGNED,
                       createdAt                 DATETIME,
                       modifiedAt                DATETIME,
                       isRead                    TINYINT(1) DEFAULT 0,
+                      isNew                     TINYINT(1) DEFAULT 1,
 
                       PRIMARY KEY (notification_id),
                       FOREIGN KEY (notifier_id) REFERENCES users (user_id) ON DELETE CASCADE ON UPDATE CASCADE
@@ -60,4 +64,27 @@ const notifications = async () =>{
                       SET NEW.modifiedAt = NOW();
                     END
                 `);
+}
+
+
+const fill_types = async () => {
+  await conn.sql(`
+    INSERT INTO notification_types
+      (notification_type_id, topic)
+    VALUES
+      (1, 'שיתוף רשימה'),
+      (2, 'סריקת מוצר')
+  `);
+}
+
+const fill_types_status = async () => {
+  await conn.sql(`
+    INSERT INTO notification_types_status
+      (notification_type_id, status, isConfirm, status_topic)
+    VALUES
+      (1, 1,  1, 'ממתין לאישור'),
+      (1, 10, 0, 'רשימת קניות שותפה בהצלחה'),
+      (2, 1,  0, 'מוצר נסרק ולא זוהה')
+  `);
+  //      (1, 100,0, 'שיתוף רשימת קניות נדחה'),
 }

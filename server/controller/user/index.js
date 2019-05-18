@@ -11,6 +11,17 @@ const getUserByMail = async (mail) => {
   return user;
 }
 
+const getUserByID = async (user_id) => {
+  let users = await conn.sql(`SELECT * FROM users WHERE user_id=${user_id}`);
+  if(users.length===0) return null;
+  let user = users[0];
+
+  delete user.facebookID;
+  delete user.googleID;
+  return user;
+}
+
+
 const GoogleRegister = async (profile) => {
   let cb = await conn.sql(`
             INSERT INTO users
@@ -64,6 +75,7 @@ const getAllUsersButMe = async (myUserID) => {
 module.exports = {
   register,
   getUserByMail,
+  getUserByID,
   GoogleRegister,
   FacebookRegister,
   setProfilePic,

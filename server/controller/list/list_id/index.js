@@ -2,6 +2,7 @@ const conn                        =   require('../../../db/connection');
 const {ParamsError, AuthError}    =   require('../../../config/errors');
 const {getListProducts}           =   require('./product');
 const socketEmitter               =   require('../../socket/emitter');
+const ctrlNotify                  =   require('../../notification');
 
 const getList = async (list_id) => {
   let list = await conn.sql(`
@@ -28,8 +29,10 @@ const deleteList = async (user, list, io) => {
   if(user.mail===list.creator.mail){ //user is the creator. delete entire list!
     await socketEmitter.emitByList(io, list.list_id, 'listDeleted' , list.list_id);
     await conn.sql(`DELETE FROM lists WHERE list_id=${list.list_id} AND user_id=${user.user_id}`);
-  } else {
+    await conn.sql(`DELETE FROM notifications WHERE notification_type_id=1 AND subject_id=${list.list_id}`); //remove all notifications about this specific list
+  } else { //user only removes himself from list_shares
     await conn.sql(`DELETE FROM list_shares WHERE list_id=${list.list_id} AND user_id=${user.user_id}`);
+    await conn.sql(`DELETE FROM notifications WHERE notification_type_id=1 AND subject_id=${list.list_id} AND notifier_id=${user.user_id}`); //remove all notifications about this specific list
     await socketEmitter.emitByUser(io, user.user_id, 'listDeleted' , list.list_id);
   }
 
@@ -49,14 +52,14 @@ const updateList = async (list, user, io) => {
   let device = {id: list.device_id, password: list.device_password};
   if(device.id && await require('../../device').verifyDevice(device)===false)
     throw new ParamsError("device details invalid");
-  
+
   for(delShare of list.shares_deleted){
     await conn.sql(`DELETE FROM list_shares WHERE user_id=${delShare.user_id} AND list_id=${list.list_id}`);
     await socketEmitter.emitByUser(io, delShare.user_id, 'listDeleted' , list.list_id);
   }
-  for(newShare of list.shares_inserted){
-    await conn.sql(`INSERT INTO list_shares (user_id, list_id) VALUES (${newShare.user_id}, ${list.list_id})`);
-  }
+  for(newShare of list.shares_inserted)
+    await ctrlNotify.shareListRequest(io, newShare.user_id, user.user_id, list.list_id);
+
 
   let cb = await conn.sql(`UPDATE lists SET list_name='${list.list_name}', list_type_id=${list.list_type}, device_id=${device.id || null}
                            WHERE list_id=${list.list_id}`);

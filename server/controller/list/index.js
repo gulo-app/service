@@ -4,6 +4,7 @@ const {verifyDevice, isDeviceConnected}    =   require('../device');
 const {getList, getListShares, getListCreator, getListDevice}       =   require('./list_id')
 const {getListProducts}           =   require('./list_id/product');
 const socketEmitter               =   require('../socket/emitter');
+const ctrlNotify                  =   require('../notification');
 
 const addList = async (creator, newList, io) => { //create new list {list_name, list_type, device_id, device_password, shares: []}
     if(Object.keys(newList).length!==5 || !newList.list_name || !newList.list_type)
@@ -18,18 +19,17 @@ const addList = async (creator, newList, io) => { //create new list {list_name, 
     //start insert into DB:
     let cb = await conn.sql(`INSERT INTO lists (user_id, list_name, list_type_id, device_id) VALUES (${creator.user_id},'${newList.list_name}', ${newList.list_type}, ${device.id || null})`);
     let newListID = cb.insertId;
-    let newListCB = await getList(newListID);
 
     if(newList.shares && newList.shares.length>0){ //insert shares(if exists) into list_shares table
       for(let share of newList.shares){
         let user = await conn.sql(`SELECT user_id FROM users WHERE user_id=${share.user_id}`);
-        if(user.length>0){
-          await conn.sql(`INSERT INTO list_shares (list_id, user_id) VALUES (${newListID},${share.user_id})`);
-        }
+        if(user.length>0)
+          await ctrlNotify.shareListRequest(io, share.user_id, creator.user_id, newListID);
       }
     }
-
-    await socketEmitter.emitByList(io, newListCB.list_id, 'newList' , newListCB);
+    
+    let newListCB = await getList(newListID);
+    await socketEmitter.emitByUser(io, creator.user_id, 'newList' , newListCB);
     return newListCB;
 }
 

@@ -36,7 +36,7 @@ const notifications = async () =>{
                       status                    INT          NOT NULL,
                       notifier_id               INT UNSIGNED NOT NULL,
                       triggerBy_id              INT UNSIGNED,
-                      subject_id                INT UNSIGNED,
+                      subject_id                BIGINT UNSIGNED,
                       createdAt                 DATETIME,
                       modifiedAt                DATETIME,
                       isRead                    TINYINT(1) DEFAULT 0,

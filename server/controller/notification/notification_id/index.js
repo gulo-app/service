@@ -4,21 +4,33 @@ const {getUserByID}               =   require('../../user');
 const socketEmitter               =   require('../../socket/emitter');
 
 const buildNotification = async (noti) => {
-  noti.triggerBy  =   await getUserByID(noti.triggerBy_id);
   let {notification_type_id, status} = noti;
+  noti.title = {primary: '', secondary: ''};
 
   switch(notification_type_id){
     case 1: //shared list
-      let triggerName = `${noti.triggerBy.firstname} ${noti.triggerBy.lastname}`;
+      noti.triggerBy  =   await getUserByID(noti.triggerBy_id);
       noti.subject  =  await require('../../list/list_id').getList(noti.subject_id);
-      if(status===1 || status===10) //request to share list
-        noti.title = `הוזמנת על ידי <${triggerName}> לערוך את הרשימה <${noti.subject.list_name}>`;
-      if(status===2) //removed from shared list
-        noti.title = `הוסרת מהרשימה <${noti.subject.list_name}> על ידי <${triggerName}>`;
-      if(status===3)
-        noti.title = `המשתמש <${triggerName}> עזב את הרשימה <${noti.subject.list_name}>`;
-      if(status===4)
-        noti.title = `המשתמש <${triggerName}> הצטרף לרשימה <${noti.subject.list_name}>`;
+      let triggerName = `${noti.triggerBy.firstname} ${noti.triggerBy.lastname}`;
+      if(status===1){ //request to share list
+        noti.title.primary    = `הוזמנת על ידי <${triggerName}> לערוך את הרשימה <${noti.subject.list_name}>`;
+        noti.title.secondary  = `ממתין לאישור`
+      }if(status===2){ //removed from shared list
+        noti.title.primary    = `הוסרת מהרשימה <${noti.subject.list_name}> על ידי <${triggerName}>`;
+      }if(status===3){
+        noti.title.primary    = `המשתמש <${triggerName}> עזב את הרשימה <${noti.subject.list_name}>`;
+      }if(status===4){
+        noti.title.primary    = `המשתמש <${triggerName}> הצטרף לרשימה <${noti.subject.list_name}>`;
+      }if(status===10){
+        noti.title.primary    = `הוזמנת על ידי <${triggerName}> לערוך את הרשימה <${noti.subject.list_name}>`;
+        noti.title.secondary  = `רשימת קניות שותפה בהצלחה`;
+      }
+      break;
+
+    case 3: //scan not exists
+      if(status===1) //scan not exists at all
+        noti.title.primary    =   `מוצר נסרק ולא זוהה`;
+        noti.title.secondary  =   `ברקוד: <${noti.subject_id}>`;
       break;
   }
 }

@@ -32,6 +32,12 @@ const joinList = async (io, notifier_id, triggerBy_id, list_id) => {
   return await addNotification(io, 1, 4, notifier_id, triggerBy_id, list_id);
 }
 
+
+const scanNotExists = async (io, notifier_id, triggerBy_id, barcode) => {
+  return await addNotification(io, 3, 1, notifier_id, triggerBy_id, barcode);
+}
+
+
 const getAllNotifications = async (user) => {
   let notifications = await conn.sql(`
     SELECT *
@@ -55,11 +61,13 @@ const unNewNotifications = async (user) => {
   return true;
 }
 
+
 module.exports = {
   shareListRequest,
   removedFromList,
   leaveList,
   joinList,
   getAllNotifications,
-  unNewNotifications
+  unNewNotifications,
+  scanNotExists
 }

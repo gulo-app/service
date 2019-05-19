@@ -1,10 +1,12 @@
-const conn                        =   require('../../db/connection');
-const generatePassword            =   require('generate-password');
-const _                           =   require('lodash');
-const {getProduct}                =   require('../product');
-const {insertProduct}             =   require('../list/list_id');
-const {getListProduct}            =   require('../list/list_id/product/product_id');
-const {ParamsError, AuthError, ScanError}    =   require('../../config/errors');
+const conn                                    =   require('../../db/connection');
+const generatePassword                        =   require('generate-password');
+const _                                       =   require('lodash');
+const {getProduct}                            =   require('../product');
+const {getListProduct}                        =   require('../list/list_id/product/product_id');
+const ctrlNotify                              =   require('../notification');
+const {insertProduct, forEachUserInList}      =   require('../list/list_id');
+const {ParamsError, AuthError, ScanError}     =   require('../../config/errors');
+
 
 const verifyDevice = async (device) => {
   if(!device.id || !device.password)
@@ -44,7 +46,7 @@ const createDevice = async (password) => {
   return await conn.sql(`SELECT * FROM devices WHERE device_id=${newDevice.insertId}`);
 }
 
-const scan = async(device, barcode) => {
+const scan = async(device, barcode, io) => {
   if(!barcode || !device || !device.id || !device.password || isNaN(device.id))
     throw new ParamsError('params invalid');
   if(await verifyDevice(device)===false)
@@ -55,7 +57,10 @@ const scan = async(device, barcode) => {
     throw new AuthError('device not connected');
 
   let product = await getProduct(barcode);
-  if(!product){ // *** PRODUCT NOT EXISTS -> handle later with notification ***
+  if(!product){ // *** PRODUCT NOT EXISTS AT ALL. send notification to all List's users
+    await forEachUserInList(list_id, async (notifier_id) => {
+        await ctrlNotify.scanNotExists(io, notifier_id, device.id, barcode);
+    });
     throw new ScanError('product not exists on inventory');
   }
 

@@ -124,6 +124,14 @@ const getListDevice = async (list_id) => {
   return device[0];
 }
 
+const forEachUserInList = async (list_id, func) => {
+  let theList = await getList(list_id);
+  for(let share of theList.shares)
+    await func(share.user_id);
+
+  await func(theList.creator.user_id);
+}
+
 module.exports = {
   getList,
   updateList,
@@ -131,5 +139,6 @@ module.exports = {
   insertProduct,
   getListShares,
   getListCreator,
-  getListDevice
+  getListDevice,
+  forEachUserInList
 }

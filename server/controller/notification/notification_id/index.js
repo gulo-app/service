@@ -9,10 +9,16 @@ const buildNotification = async (noti) => {
 
   switch(notification_type_id){
     case 1: //shared list
+      let triggerName = `${noti.triggerBy.firstname} ${noti.triggerBy.lastname}`;
       noti.subject  =  await require('../../list/list_id').getList(noti.subject_id);
       if(status===1 || status===10) //request to share list
-        noti.title = `הוזמנת על ידי ${noti.triggerBy.firstname} ${noti.triggerBy.lastname} לערוך את הרשימה <${noti.subject.list_name}>`;
-
+        noti.title = `הוזמנת על ידי <${triggerName}> לערוך את הרשימה <${noti.subject.list_name}>`;
+      if(status===2) //removed from shared list
+        noti.title = `הוסרת מהרשימה <${noti.subject.list_name}> על ידי <${triggerName}>`;
+      if(status===3)
+        noti.title = `המשתמש <${triggerName}> עזב את הרשימה <${noti.subject.list_name}>`;
+      if(status===4)
+        noti.title = `המשתמש <${triggerName}> הצטרף לרשימה <${noti.subject.list_name}>`;
       break;
   }
 }
@@ -47,9 +53,9 @@ const confirm = async (noti, io) => {
   let type    =   noti.notification_type_id;
   let status  =   noti.status;
 
-  if(type===1 && status===1)
+  if(type===1 && status===1){ //confirm shared list
     await confirmSharedList(noti.notifier_id, noti.subject_id, noti.notification_id, io);
-
+  }
   return true;
 }
 
@@ -61,7 +67,18 @@ const confirmSharedList = async (user_id, list_id, noti_id, io) => {
   await conn.sql(`INSERT INTO list_shares (user_id, list_id) VALUES (${user_id}, ${list_id})`);
 
   let theList = await require('../../list/list_id').getList(list_id);
+  await require('../../notification').joinList(io, theList.creator.user_id, user_id, list_id);
   await socketEmitter.emitByUser(io, user_id, 'newList' , theList); //notify client that NewList is Available
+  await socketEmitter.emitByList(io, theList.list_id, 'listUpdated' , theList);
+  return true;
+};
+
+const deleteNotification = async (noti_id) => {
+  if(!noti_id)
+    return false;
+  let cb = await conn.sql(`DELETE FROM notifications WHERE notification_id=${noti_id}`);
+  if(cb.affectedRows!==1)
+    throw Error('notification delete failed');
   return true;
 };
 
@@ -69,5 +86,6 @@ module.exports = {
   getNotification,
   buildNotification,
   markRead,
-  confirm
+  confirm,
+  deleteNotification
 }

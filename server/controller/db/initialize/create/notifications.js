@@ -73,18 +73,28 @@ const fill_types = async () => {
       (notification_type_id, topic)
     VALUES
       (1, 'שיתוף רשימה'),
-      (2, 'סריקת מוצר')
+      (3, 'סריקת מוצר')
   `);
 }
 
 const fill_types_status = async () => {
+  /*
+  1:
+    1. ממתין לאישור
+    2. משתמש הוסר מרשימה
+    3. משתמש עזב הרשימה
+    4. משתמש הצטרף לרשימה
+  */
   await conn.sql(`
     INSERT INTO notification_types_status
       (notification_type_id, status, isConfirm, status_topic)
     VALUES
       (1, 1,  1, 'ממתין לאישור'),
+      (1, 2, 0, 'הוסרת מרשימה זו'),
+      (1, 3, 0, NULL),
+      (1, 4, 0, NULL),
       (1, 10, 0, 'רשימת קניות שותפה בהצלחה'),
-      (2, 1,  0, 'מוצר נסרק ולא זוהה')
+      (3, 1,  0, 'מוצר נסרק ולא זוהה')
   `);
   //      (1, 100,0, 'שיתוף רשימת קניות נדחה'),
 }

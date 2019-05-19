@@ -33,6 +33,7 @@ const deleteList = async (user, list, io) => {
   } else { //user only removes himself from list_shares
     await conn.sql(`DELETE FROM list_shares WHERE list_id=${list.list_id} AND user_id=${user.user_id}`);
     await conn.sql(`DELETE FROM notifications WHERE notification_type_id=1 AND subject_id=${list.list_id} AND notifier_id=${user.user_id}`); //remove all notifications about this specific list
+    await ctrlNotify.leaveList(io, list.creator.user_id, user.user_id, list.list_id);
     await socketEmitter.emitByUser(io, user.user_id, 'listDeleted' , list.list_id);
   }
 
@@ -54,7 +55,8 @@ const updateList = async (list, user, io) => {
     throw new ParamsError("device details invalid");
 
   for(delShare of list.shares_deleted){
-    await conn.sql(`DELETE FROM list_shares WHERE user_id=${delShare.user_id} AND list_id=${list.list_id}`);
+    await conn.sql(`DELETE FROM list_shares   WHERE user_id=${delShare.user_id} AND list_id=${list.list_id}`);
+    await ctrlNotify.removedFromList(io, delShare.user_id, user.user_id, list.list_id);
     await socketEmitter.emitByUser(io, delShare.user_id, 'listDeleted' , list.list_id);
   }
   for(newShare of list.shares_inserted)

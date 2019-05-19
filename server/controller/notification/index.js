@@ -21,6 +21,16 @@ const addNotification = async (io, type, status, notifier_id, triggerBy_id, subj
 const shareListRequest = async (io, notifier_id, triggerBy_id, list_id) => {
   return await addNotification(io, 1, 1, notifier_id, triggerBy_id, list_id);
 }
+const removedFromList = async (io, notifier_id, triggerBy_id, list_id) => {
+  await conn.sql(`DELETE FROM notifications WHERE notifier_id=${notifier_id} AND subject_id=${list_id}`);
+  return await addNotification(io, 1, 2, notifier_id, triggerBy_id, list_id);
+}
+const leaveList = async (io, notifier_id, triggerBy_id, list_id) => {
+  return await addNotification(io, 1, 3, notifier_id, triggerBy_id, list_id);
+}
+const joinList = async (io, notifier_id, triggerBy_id, list_id) => {
+  return await addNotification(io, 1, 4, notifier_id, triggerBy_id, list_id);
+}
 
 const getAllNotifications = async (user) => {
   let notifications = await conn.sql(`
@@ -47,6 +57,9 @@ const unNewNotifications = async (user) => {
 
 module.exports = {
   shareListRequest,
+  removedFromList,
+  leaveList,
+  joinList,
   getAllNotifications,
   unNewNotifications
 }

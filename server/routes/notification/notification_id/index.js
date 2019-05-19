@@ -38,4 +38,11 @@ router.post('/confirm', async (req,res) => {
   }catch(e){RES_ERROR(res,e)}
 })
 
+router.delete('/', async (req, res) => {
+  try{
+    await ctrl.deleteNotification(req.notification.notification_id);
+    res.send({notification_id: req.notification.notification_id});
+  }catch(e){RES_ERROR(res,e)}
+})
+
 module.exports = router;

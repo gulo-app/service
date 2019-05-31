@@ -1,5 +1,7 @@
 const router            =   require('express').Router();
 const initializeDB      =   require('../../controller/db/initialize');
+const getterDB          =   require('../../controller/db/getter');
+const auth              =   require('../../middleware/auth');
 const {RES_ERROR}       =   require('../../config');
 
 router.get('/initialize', async (req,res) => {
@@ -10,6 +12,18 @@ router.get('/initialize', async (req,res) => {
   }catch(e){
     RES_ERROR(res, e);
   }
+});
+
+router.get('/categories', auth, async (req,res) => {
+    res.send(await getterDB.categories());
+})
+
+router.get('/brands', auth, async (req,res) => {
+    res.send(await getterDB.brands());
+})
+
+router.get('/capacity_units', auth, async (req,res) => {
+    res.send(await getterDB.capacity_units());
 })
 
 module.exports = router;

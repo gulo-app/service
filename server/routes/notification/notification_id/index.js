@@ -1,9 +1,10 @@
-const router            =   require('express').Router();
-const _                 =   require('lodash');
-const ctrl              =   require('../../../controller/notification/notification_id');
-const auth              =   require('../../../middleware/auth');
-const {RES_ERROR}       =   require('../../../config');
-const {ParamsError}     =   require('../../../config/errors');
+const router              =     require('express').Router();
+const _                   =     require('lodash');
+const ctrl                =     require('../../../controller/notification/notification_id');
+const pCtrl               =     require('../../../controller/product');
+const auth                =     require('../../../middleware/auth');
+const {RES_ERROR}         =     require('../../../config');
+const {ParamsError}       =     require('../../../config/errors');
 
 /*      notification/:id      */
 
@@ -44,5 +45,31 @@ router.delete('/', async (req, res) => {
     res.send({notification_id: req.notification.notification_id});
   }catch(e){RES_ERROR(res,e)}
 })
+
+router.post('/newProductForm', auth, async(req,res) => {
+  try{
+    let {newProduct} = req.body;
+    await pCtrl.insertUserProduct(newProduct, req.notification, req.app.get('io'));
+    res.send();
+  }catch(e){RES_ERROR(res,e)}
+})
+
+router.post('/overwriteProduct', auth, async(req,res) => {
+  try{
+    let {product} = req.body;
+    let temp = await pCtrl.overwriteUserProduct(product, req.notification, req.app.get('io'));
+    res.send({temp});
+  }catch(e){RES_ERROR(res,e)}
+})
+
+router.post('/verifyProduct', auth, async(req,res) => {
+  try{
+    let {product} = req.body;
+    let temp = await pCtrl.verifyProduct(product, req.notification, req.app.get('io'));
+    res.send({temp});
+  }catch(e){RES_ERROR(res,e)}
+})
+
+
 
 module.exports = router;

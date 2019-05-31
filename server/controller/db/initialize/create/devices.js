@@ -3,6 +3,9 @@ const ctrl    =     require('../../../../controller/device');
 module.exports = async () => {
     await devices();
     await ctrl.createDevice('ab8F');
+    await ctrl.createDevice('ab8F');
+    await ctrl.createDevice('ab8F');
+    await ctrl.createDevice('ab8F');
     return;
 }
 

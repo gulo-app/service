@@ -32,9 +32,23 @@ const joinList = async (io, notifier_id, triggerBy_id, list_id) => {
   return await addNotification(io, 1, 4, notifier_id, triggerBy_id, list_id);
 }
 
-
 const scanNotExists = async (io, notifier_id, triggerBy_id, barcode) => {
   return await addNotification(io, 3, 1, notifier_id, triggerBy_id, barcode);
+}
+
+const verifyInsertedProduct = async (io, notifier_id, triggerBy_id, barcode) => {
+  let notis = await conn.sql(`SELECT notification_id, notifier_id FROM notifications WHERE
+                          notification_type_id=4 AND notifier_id=${notifier_id}`);
+
+  if(notis.length===0) //send notification only if not exists yet
+    return await addNotification(io, 4, 1, notifier_id, triggerBy_id, barcode);
+
+  for(let noti of notis){
+    console.log(noti.notification_id);
+    await conn.sql(`UPDATE notifications SET isRead=0 WHERE notification_id=${noti.notification_id}`);
+    await socketEmitter.emitByUser(io, noti.notifier_id, 'updateNotification' , await getNotification(noti.notification_id));
+  }
+  return true;
 }
 
 
@@ -69,5 +83,6 @@ module.exports = {
   joinList,
   getAllNotifications,
   unNewNotifications,
-  scanNotExists
+  scanNotExists,
+  verifyInsertedProduct
 }

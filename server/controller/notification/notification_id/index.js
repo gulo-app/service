@@ -10,7 +10,7 @@ const buildNotification = async (noti) => {
   switch(notification_type_id){
     case 1: //shared list
       noti.triggerBy  =   await getUserByID(noti.triggerBy_id);
-      noti.subject  =  await require('../../list/list_id').getList(noti.subject_id);
+      noti.subject    =   await require('../../list/list_id').getList(noti.subject_id);
       let triggerName = `${noti.triggerBy.firstname} ${noti.triggerBy.lastname}`;
       if(status===1){ //request to share list
         noti.title.primary    = `הוזמנת על ידי <${triggerName}> לערוך את הרשימה <${noti.subject.list_name}>`;
@@ -28,9 +28,25 @@ const buildNotification = async (noti) => {
       break;
 
     case 3: //scan not exists
-      if(status===1) //scan not exists at all
+      noti.list_id  =  await require('../../device').getDeviceListID(noti.triggerBy_id);
+      if(status===1){ //scan not exists at all
         noti.title.primary    =   `מוצר נסרק ולא זוהה`;
         noti.title.secondary  =   `ברקוד: <${noti.subject_id}>`;
+      }if(status===10){
+        noti.title.primary    =   `מוצר נסרק ולא זוהה`;
+        noti.title.secondary  =   `המוצר <${noti.subject_id}> הוזן למערכת`;
+      }
+      break;
+    case 4: //verify product after scanned
+      noti.list_id  =  await require('../../device').getDeviceListID(noti.triggerBy_id);
+      noti.product  =  await require('../../product').getProduct(noti.subject_id);
+      if(status===1){
+        noti.title.primary    =   `מוצר נסרק ולא זוהה`;
+        noti.title.secondary  =   `ברקוד: <${noti.subject_id}> ממתין לאימות`;
+      }if(status===10){
+        noti.title.primary    =   `מוצר נסרק ולא זוהה`;
+        noti.title.secondary  =   `המוצר <${noti.subject_id}> אומת בהצלחה`;
+      }
       break;
   }
 }

@@ -64,6 +64,14 @@ const scan = async(device, barcode, io) => {
     throw new ScanError('product not exists on inventory');
   }
 
+  if(product.verifiedCounter>0){ //product was inserted by other user -> need to be verified
+    await forEachUserInList(list_id, async (notifier_id) => {
+        await ctrlNotify.verifyInsertedProduct(io, notifier_id, device.id, barcode);
+    });
+    throw new ScanError('product need to be verified');
+  }
+
+
   let product_id = await insertProduct(list_id, product.barcode);
   if(!product_id)
     throw new ScanError('insert product to list failed');
@@ -75,5 +83,6 @@ module.exports = {
   createDevice,
   verifyDevice,
   isDeviceConnected,
-  scan
+  scan,
+  getDeviceListID
 }

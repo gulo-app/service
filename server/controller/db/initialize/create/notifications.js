@@ -43,7 +43,8 @@ const notifications = async () =>{
                       isNew                     TINYINT(1) DEFAULT 1,
 
                       PRIMARY KEY (notification_id),
-                      FOREIGN KEY (notifier_id) REFERENCES users (user_id) ON DELETE CASCADE ON UPDATE CASCADE
+                      FOREIGN KEY (notifier_id)                     REFERENCES users (user_id) ON DELETE CASCADE ON UPDATE CASCADE,
+                      FOREIGN KEY (notification_type_id, status)    REFERENCES notification_types_status (notification_type_id, status) ON DELETE CASCADE ON UPDATE CASCADE
                   ) ENGINE=InnoDB`);
 
   //TRIGGERS:
@@ -73,22 +74,12 @@ const fill_types = async () => {
       (notification_type_id, topic)
     VALUES
       (1, 'שיתוף רשימה'),
-      (3, 'סריקת מוצר')
+      (3, 'סריקת מוצר'),
+      (4, 'אימות מוצר')
   `);
 }
 
 const fill_types_status = async () => {
-  /*
-  1:
-    1. ממתין לאישור
-    2. משתמש הוסר מרשימה
-    3. משתמש עזב הרשימה
-    4. משתמש הצטרף לרשימה
-
-  3:
-    1. מוצר נסרק ולא זוהה -> ונסרק לראשונה
-    2. מוצר נסרק ולא זוהה -> וכבר הוזן על ידי משתמש קודם. ממתין לאישור הטופס
-  */
   await conn.sql(`
     INSERT INTO notification_types_status
       (notification_type_id, status, isConfirm, status_topic)
@@ -99,6 +90,9 @@ const fill_types_status = async () => {
       (1, 4, 0, 'משתמש הצטרף לרשימה'),
       (1, 10, 0, 'רשימת קניות שותפה בהצלחה'),
       (3, 1,  0, 'מוצר נסרק ולא זוהה'),
-      (3, 2,  0, 'מוצר נסרק ולא זוהה')
+      (3, 10,  0, 'פרטי המוצר הסרוק נשלחו'),
+      (4, 1,   0, 'מוצר ממתין לאימות'),
+      (4, 10,  0, 'מוצר אומת'),
+      (4, 100, 0, 'מוצר נערך מחדש')
   `);
 }

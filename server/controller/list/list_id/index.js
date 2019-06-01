@@ -1,6 +1,7 @@
 const conn                        =   require('../../../db/connection');
 const {ParamsError, AuthError}    =   require('../../../config/errors');
 const {getListProducts}           =   require('./product');
+const {getListProduct}            =   require('./product/product_id');
 const socketEmitter               =   require('../../socket/emitter');
 const ctrlNotify                  =   require('../../notification');
 
@@ -76,14 +77,18 @@ const updateList = async (list, user, io) => {
 }
 
 
-const insertProduct = async (list_id, barcode, quantity) => {
+const insertProductToList = async (io, list_id, barcode, quantity) => {
   if(!quantity) quantity=1;
   try{
     let cb = await conn.sql(`
       INSERT INTO list_products (list_id,  barcode, quantity) VALUES (${list_id}, ${barcode}, ${quantity})
       ON DUPLICATE KEY UPDATE quantity = quantity+${quantity}
     `);
-    return cb.insertId;
+
+    let list_product = await getListProduct(list_id, cb.insertId);
+    await socketEmitter.emitByList(io, list_id, 'updateListProduct' , list_product);
+    
+    return list_product;
   }catch(e){
     console.log(e.message);
     return false;
@@ -136,7 +141,7 @@ module.exports = {
   getList,
   updateList,
   deleteList,
-  insertProduct,
+  insertProductToList,
   getListShares,
   getListCreator,
   getListDevice,

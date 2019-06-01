@@ -1,11 +1,11 @@
-const conn                                    =   require('../../db/connection');
-const generatePassword                        =   require('generate-password');
-const _                                       =   require('lodash');
-const {getProduct}                            =   require('../product');
-const {getListProduct}                        =   require('../list/list_id/product/product_id');
-const ctrlNotify                              =   require('../notification');
-const {insertProduct, forEachUserInList}      =   require('../list/list_id');
-const {ParamsError, AuthError, ScanError}     =   require('../../config/errors');
+const conn                                          =   require('../../db/connection');
+const generatePassword                              =   require('generate-password');
+const _                                             =   require('lodash');
+const {getProduct}                                  =   require('../product');
+const {getListProduct}                              =   require('../list/list_id/product/product_id');
+const ctrlNotify                                    =   require('../notification');
+const {insertProductToList, forEachUserInList}      =   require('../list/list_id');
+const {ParamsError, AuthError, ScanError}           =   require('../../config/errors');
 
 
 const verifyDevice = async (device) => {
@@ -71,12 +71,11 @@ const scan = async(device, barcode, io) => {
     throw new ScanError('product need to be verified');
   }
 
-
-  let product_id = await insertProduct(list_id, product.barcode);
-  if(!product_id)
+  let list_product = await insertProductToList(io, list_id, product.barcode);
+  if(!list_product)
     throw new ScanError('insert product to list failed');
 
-  return await getListProduct(list_id, product_id);
+  return await list_product;
 }
 
 module.exports = {

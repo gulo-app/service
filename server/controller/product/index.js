@@ -1,10 +1,10 @@
-const conn                        =   require('../../db/connection');
-const {ParamsError, AuthError}    =   require('../../config/errors');
-const {VERIFIED_COUNTER}          =   require('../../config');
-const {getListProduct}            =   require('../list/list_id/product/product_id');
-const {getNotification}           =   require('../notification/notification_id');
-const socketEmitter               =   require('../socket/emitter');
-const {insertProduct, getList}    =   require('../list/list_id');
+const conn                              =   require('../../db/connection');
+const {ParamsError, AuthError}          =   require('../../config/errors');
+const {VERIFIED_COUNTER}                =   require('../../config');
+const {getListProduct}                  =   require('../list/list_id/product/product_id');
+const {getNotification}                 =   require('../notification/notification_id');
+const socketEmitter                     =   require('../socket/emitter');
+const {insertProductToList, getList}    =   require('../list/list_id');
 
 const getProduct = async (barcode) => {
   //let product = await conn.sql(`SELECT * FROM products WHERE barcode=${barcode}`);
@@ -67,11 +67,7 @@ const insertUserProduct = async (newProduct, noti, io) => {
   //assign category to product
   await conn.sql(`INSERT INTO product_category (category_id, barcode) VALUES (${newProduct.category_id}, ${newProduct.barcode})`);
 
-  let list_product_id =   await insertProduct(noti.list_id, newProduct.barcode, 1); //insert newProduct into the list which the scanned device is connected to.
-  let list_product    =   await getListProduct(noti.list_id, list_product_id);
-
-  await socketEmitter.emitByList(io, noti.list_id, 'updateListProduct' , list_product);
-
+  let list_product =  await insertProductToList(io, noti.list_id, newProduct.barcode); //insert newProduct into the list which the scanned device is connected to.
 
   //UPDATE notifications for all list's users
   let rel_notis = await conn.sql(`SELECT * FROM notifications WHERE notification_type_id=3 AND status=1
@@ -89,7 +85,7 @@ const insertUserProduct = async (newProduct, noti, io) => {
   rel_notis = await conn.sql(`SELECT * FROM notifications WHERE
                     notification_type_id=3 AND status=1 AND subject_id=${noti.subject_id}`);
   for(let tmp_noti of rel_notis){ //update Notification itself for each user in list
-    await conn.sql(`UPDATE notifications SET notification_type_id=4, status=1 WHERE notification_id=${tmp_noti.notification_id}`);
+    await conn.sql(`UPDATE notifications SET notification_type_id=4, status=1, isRead=0 WHERE notification_id=${tmp_noti.notification_id}`);
     await socketEmitter.emitByUser(io, tmp_noti.notifier_id, 'updateNotification' , await getNotification(tmp_noti.notification_id));
   }
 
@@ -120,7 +116,7 @@ const verifyProduct = async (product, noti, io) => {
   if(newVerifiedCounter>=0)
     await conn.sql(`UPDATE products SET verifiedCounter=${newVerifiedCounter} WHERE barcode=${product.barcode}`); //decreament verifiedCounter
 
-  await insertProduct(noti.list_id, product.barcode, 1);
+  await insertProductToList(io, noti.list_id, product.barcode);
 
   //update all (4,1):needToBeVerified -> (4,10):verified
   let rel_notis = await conn.sql(`SELECT * FROM notifications WHERE

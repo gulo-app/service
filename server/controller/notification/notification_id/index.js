@@ -46,6 +46,9 @@ const buildNotification = async (noti) => {
       }if(status===10){
         noti.title.primary    =   `מוצר נסרק ולא זוהה`;
         noti.title.secondary  =   `המוצר <${noti.subject_id}> אומת בהצלחה`;
+      }if(status===100){
+        noti.title.primary    =   `מוצר נסרק ולא זוהה`;
+        noti.title.secondary  =   `המוצר <${noti.subject_id}> נערך מחדש`;
       }
       break;
   }

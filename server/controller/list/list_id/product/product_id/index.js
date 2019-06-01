@@ -1,7 +1,7 @@
 const conn            =   require('../../../../../db/connection');
 const {ParamsError, AuthError}   =   require('../../../../../config/errors');
 
-const getListProduct = async (list_id, product_id) => {
+const getListProduct = async (list_id, product_id) => {  
   let product = await conn.sql(`
     SELECT *
     FROM list_products lp

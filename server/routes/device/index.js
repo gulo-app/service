@@ -7,10 +7,10 @@ const socketEmitter     =   require('../../controller/socket/emitter');
 
 router.post('/scan/:barcode', async (req,res) => {
   try{
-    let device          =   _.pick(req.body, ['id','password']);
-    let newListProduct  =   await ctrl.scan(device, req.params.barcode, req.app.get('io'));
-    await socketEmitter.emitByList(req.app.get('io'), newListProduct.list_id, 'updateListProduct' , newListProduct);
-    res.send(newListProduct);
+    let device = _.pick(req.body, ['id','password']);
+
+    await ctrl.scan(device, req.params.barcode, req.app.get('io'));
+    res.send(`barcode [${req.params.barcode}] scanned successfully`);
   }catch(e){RES_ERROR(res,e)};
 })
 

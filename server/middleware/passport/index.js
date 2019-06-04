@@ -59,6 +59,7 @@ module.exports = () => {
   passport.serializeUser((user, done) => {  //trigger on req.login()
     done(null, user.mail); //write user_id into current session file
   });
+
   passport.deserializeUser(async (user_mail, done) => {
     let user = await ctrlUser.getUserByMail(user_mail);
     done(null, user); //push user details into req.user

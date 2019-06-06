@@ -19,15 +19,31 @@ router.use(async (req,res,next) => { //middleware to verify product_id
   }catch(e){RES_ERROR(res,e)}
 })
 
-router.get('/', async (req,res) => {
+router.get('/', auth, async (req,res) => {
   res.send(req.list['product']);
 })
 
-router.post('/toggleCheck', async (req,res) => {
+
+router.post('/', auth, async(req,res) => {
   try{
-    let productListCB = await ctrl.toggleCheck(req.list_id, req.product_id);
-    await socketEmitter.emitByList(req.app.get('io'), req.list_id, 'updateListProduct' , productListCB);
+    let {product} = req.body;
+    let cb = await ctrl.updateListProduct(req.app.get('io'), product);
+    res.send({cb});
+  }catch(e){RES_ERROR(res,e)}
+})
+
+router.delete('/', auth, async(req,res) => {
+  try{
+    let cb = await ctrl.deleteListProduct(req.app.get('io'), req.list_id, req.product_id);
+    res.send({cb});
+  }catch(e){RES_ERROR(res,e)}
+})
+
+router.post('/toggleCheck', auth, async (req,res) => {
+  try{
+    let productListCB = await ctrl.toggleCheck(req.list_id, req.product_id, req.app.get('io'));
     res.send(productListCB);
   }catch(e){RES_ERROR(res,e)}
 })
+
 module.exports = router;

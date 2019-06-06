@@ -65,6 +65,7 @@ const list_products = async () =>{
                       barcode     DOUBLE      UNSIGNED NOT NULL,
                       quantity    INT         UNSIGNED NOT NULL,
                       isChecked   TINYINT(1)  DEFAULT 0,
+                      memo        MEDIUMTEXT  DEFAULT NULL,
 
                       PRIMARY KEY (id),
                       UNIQUE  KEY (list_id, barcode),

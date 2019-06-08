@@ -3,6 +3,7 @@ const {ParamsError, AuthError}    =   require('../../config/errors');
 const {verifyDevice, isDeviceConnected}    =   require('../device');
 const {getList, getListShares, getListCreator, getListDevice}       =   require('./list_id')
 const {getListProducts}           =   require('./list_id/product');
+const {getListManualProducts}     =   require('./list_id/manual_product');
 const socketEmitter               =   require('../socket/emitter');
 const ctrlNotify                  =   require('../notification');
 
@@ -27,7 +28,7 @@ const addList = async (creator, newList, io) => { //create new list {list_name, 
           await ctrlNotify.shareListRequest(io, share.user_id, creator.user_id, newListID);
       }
     }
-    
+
     let newListCB = await getList(newListID);
     await socketEmitter.emitByUser(io, creator.user_id, 'newList' , newListCB);
     return newListCB;
@@ -49,10 +50,11 @@ const getAllLists = async (user) => {
                GROUP BY list_id
               `);
   for(let list of lists){
-    list.products = await getListProducts(list.list_id);
-    list.shares   = await getListShares(list.list_id);
-    list.creator  = await getListCreator(list.list_id);
-    list.device   = await getListDevice(list.list_id) || {};
+    list.shares             =    await getListShares(list.list_id);
+    list.creator            =    await getListCreator(list.list_id);
+    list.device             =    await getListDevice(list.list_id) || {};
+    list.products           =    await getListProducts(list.list_id);
+    list.manual_products    =    await getListManualProducts(list.list_id);
   }
 
   return lists;

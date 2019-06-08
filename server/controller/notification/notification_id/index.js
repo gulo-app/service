@@ -12,18 +12,19 @@ const buildNotification = async (noti) => {
       noti.triggerBy  =   await getUserByID(noti.triggerBy_id);
       noti.subject    =   await require('../../list/list_id').getList(noti.subject_id);
       let triggerName = `${noti.triggerBy.firstname} ${noti.triggerBy.lastname}`;
+      noti.title.primary      = `רשימת קניות: ${noti.subject.list_name}`;
       if(status===1){ //request to share list
         noti.title.primary    = `הוזמנת על ידי <${triggerName}> לערוך את הרשימה <${noti.subject.list_name}>`;
         noti.title.secondary  = `ממתין לאישור`
       }if(status===2){ //removed from shared list
-        noti.title.primary    = `הוסרת מהרשימה <${noti.subject.list_name}> על ידי <${triggerName}>`;
+        noti.title.secondary    = `הוסרת מהרשימה על ידי <${triggerName}>`;
       }if(status===3){
-        noti.title.primary    = `המשתמש <${triggerName}> עזב את הרשימה <${noti.subject.list_name}>`;
+        noti.title.secondary    =  `המשתמש <${triggerName}> עזב את הרשימה`;
       }if(status===4){
-        noti.title.primary    = `המשתמש <${triggerName}> הצטרף לרשימה <${noti.subject.list_name}>`;
+        noti.title.secondary    = `המשתמש <${triggerName}> הצטרף לרשימה`;
       }if(status===10){
-        noti.title.primary    = `הוזמנת על ידי <${triggerName}> לערוך את הרשימה <${noti.subject.list_name}>`;
-        noti.title.secondary  = `רשימת קניות שותפה בהצלחה`;
+        noti.title.primary      = `הוזמנת על ידי <${triggerName}> לערוך את הרשימה <${noti.subject.list_name}>`;
+        noti.title.secondary    = `רשימת קניות שותפה בהצלחה`;
       }
       break;
 

@@ -19,6 +19,7 @@ router.use(async (req,res,next) => { //middleware to verify list_id
 })
 
 router.use('/product', require('./product'));
+router.use('/manual_product', require('./manual_product'));
 
 router.get('/', (req,res) => {
   res.send(req.list);
@@ -36,6 +37,13 @@ router.put('/', auth, async (req,res) => {
 router.delete('/', auth, async (req,res) => {
   try {
     let cb = await ctrl.deleteList(req.user, req.list, req.app.get('io'));
+    res.send(cb);
+  }catch(e){RES_ERROR(res,e)}
+})
+
+router.post('/clear', auth, async(req,res) => {
+  try {
+    let cb = await ctrl.clearList(req.user, req.list, req.app.get('io'));
     res.send(cb);
   }catch(e){RES_ERROR(res,e)}
 })

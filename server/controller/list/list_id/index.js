@@ -2,6 +2,7 @@ const conn                        =   require('../../../db/connection');
 const {ParamsError, AuthError}    =   require('../../../config/errors');
 const {getListProducts}           =   require('./product');
 const {getListProduct}            =   require('./product/product_id');
+const {getListManualProducts}     =   require('./manual_product');
 const socketEmitter               =   require('../../socket/emitter');
 const ctrlNotify                  =   require('../../notification');
 
@@ -18,10 +19,11 @@ const getList = async (list_id) => {
     return null;
 
   list = list[0];
-  list.products = await getListProducts(list.list_id);
-  list.shares   = await getListShares(list.list_id);
-  list.creator  = await getListCreator(list.list_id);
-  list.device   = await getListDevice(list.list_id) || {};
+  list.shares           =   await getListShares(list.list_id);
+  list.creator          =   await getListCreator(list.list_id);
+  list.device           =   await getListDevice(list.list_id) || {};
+  list.products         =   await getListProducts(list.list_id);
+  list.manual_products  =   await getListManualProducts(list.list_id);
 
   return list;
 }
@@ -76,6 +78,18 @@ const updateList = async (list, user, io) => {
   return updatedListCB;
 }
 
+const clearList = async (user, list, io) => {
+  if(user.mail!==list.creator.mail) //user is NOT the creator. BLOCK ACCESS
+    throw new AuthError('unauthorized access. clearList failed!');
+
+  await conn.sql(`DELETE FROM list_products WHERE list_id=${list.list_id}`);
+  await conn.sql(`DELETE FROM list_manual_products WHERE list_id=${list.list_id}`);
+
+  list = await getList(list.list_id); //null or list with 1 less share
+  if(list)
+    await socketEmitter.emitByList(io, list.list_id, 'listUpdated' , list);
+  return list;
+}
 
 const insertProductToList = async (io, list_id, barcode, quantity) => {
   if(!quantity) quantity=1;
@@ -87,7 +101,7 @@ const insertProductToList = async (io, list_id, barcode, quantity) => {
 
     let list_product = await getListProduct(list_id, cb.insertId);
     await socketEmitter.emitByList(io, list_id, 'updateListProduct' , list_product);
-    
+
     return list_product;
   }catch(e){
     console.log(e.message);
@@ -142,6 +156,7 @@ module.exports = {
   updateList,
   deleteList,
   insertProductToList,
+  clearList,
   getListShares,
   getListCreator,
   getListDevice,

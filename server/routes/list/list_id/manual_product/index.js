@@ -1,7 +1,6 @@
 const router            =   require('express').Router();
 const _                 =   require('lodash');
-const ctrl              =   require('../../../../controller/list/list_id/product');
-const ctrlManual        =   require('../../../../controller/list/list_id/manual_product');
+const ctrl              =   require('../../../../controller/list/list_id/manual_product');
 const auth              =   require('../../../../middleware/auth');
 const {RES_ERROR}       =   require('../../../../config');
 
@@ -15,18 +14,17 @@ router.use('/:product_id(\\d+)/', (req,res,next) => { //middleware /list/:list_i
 
 router.get('/', async (req,res) => {
   try{
-    let list_products = await ctrl.getListProducts(req.list_id);
-    res.send(list_products);
+    let list_manual_products = await ctrl.getListManualProducts(req.list_id);
+    res.send(list_manual_products);
   }catch(e){RES_ERROR(res,e)}
 })
 
 router.post('/', async (req,res) => {
   try{
     let {product} = req.body;
-    let cb = await ctrlManual.newManualProduct(product, req.list_id, req.app.get('io'));
+    let cb = await ctrl.newManualProduct(req.list_id, product, req.app.get('io'));
     res.send({cb});
   }catch(e){RES_ERROR(res,e)}
 })
-
 
 module.exports = router;

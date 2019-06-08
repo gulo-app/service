@@ -81,6 +81,7 @@ const list_manual_products = async () =>{
                       product_name  VARCHAR(100)  NOT NULL         ,
                       quantity      INT           UNSIGNED NOT NULL,
                       isChecked     TINYINT(1)    DEFAULT 0,
+                      memo        MEDIUMTEXT  DEFAULT NULL,
 
                       PRIMARY KEY (id),
                       FOREIGN KEY (list_id) REFERENCES lists    (list_id) ON DELETE CASCADE ON UPDATE CASCADE

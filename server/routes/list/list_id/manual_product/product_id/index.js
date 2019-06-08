@@ -1,6 +1,6 @@
 const router            =   require('express').Router();
 const _                 =   require('lodash');
-const ctrl              =   require('../../../../../controller/list/list_id/product/product_id');
+const ctrl              =   require('../../../../../controller/list/list_id/manual_product/product_id');
 const auth              =   require('../../../../../middleware/auth');
 const {RES_ERROR}       =   require('../../../../../config');
 const {ParamsError}     =   require('../../../../../config/errors');
@@ -10,7 +10,8 @@ const socketEmitter     =   require('../../../../../controller/socket/emitter');
 
 router.use(async (req,res,next) => { //middleware to verify product_id
   try{
-    let product = await ctrl.getListProduct(req.list_id, req.product_id);
+    console.log("here");
+    let product = await ctrl.getListManualProduct(req.list_id, req.product_id);
     if(product===null)
       throw new ParamsError('product_id invalid');
 
@@ -26,14 +27,14 @@ router.get('/', auth, async (req,res) => {
 router.put('/', auth, async(req,res) => {
   try{
     let {product} = req.body;
-    let cb = await ctrl.updateListProduct(req.app.get('io'), product);
+    let cb = await ctrl.updateListManualProduct(req.app.get('io'), product);
     res.send({cb});
   }catch(e){RES_ERROR(res,e)}
 })
 
 router.delete('/', auth, async(req,res) => {
   try{
-    let cb = await ctrl.deleteListProduct(req.app.get('io'), req.list_id, req.product_id);
+    let cb = await ctrl.deleteListManualProduct(req.app.get('io'), req.list_id, req.product_id);
     res.send({cb});
   }catch(e){RES_ERROR(res,e)}
 })

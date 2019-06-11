@@ -1,3 +1,4 @@
+const _                           =   require('lodash');
 const conn                        =   require('../../../db/connection');
 const {ParamsError, AuthError}    =   require('../../../config/errors');
 const {getListProducts}           =   require('./product');
@@ -151,6 +152,26 @@ const forEachUserInList = async (list_id, func) => {
   await func(theList.creator.user_id);
 }
 
+const getBestShoppingCart = async (list_id) => {
+  let firms     =   await conn.sql(`SELECT * FROM shopping_cart_firms`);
+  let products  =   await conn.sql(`
+              SELECT *
+              FROM list_products lp
+              NATURAL JOIN products
+              NATURAL JOIN shopping_cart_prices prices
+              WHERE lp.list_id=1
+          `);
+  let firm_products = _.groupBy(products, 'shopping_cart_firm_id');
+  for(let firm of firms){
+    firm.products       =   firm_products[firm.shopping_cart_firm_id];
+    firm.total_price   =   _.round(_.sumBy(firm.products, 'price'),2);
+    for(let p of firm.products)
+      p.price = _.round(p.price, 2);
+  }
+
+  return firms;
+}
+
 module.exports = {
   getList,
   updateList,
@@ -160,5 +181,6 @@ module.exports = {
   getListShares,
   getListCreator,
   getListDevice,
-  forEachUserInList
+  forEachUserInList,
+  getBestShoppingCart
 }

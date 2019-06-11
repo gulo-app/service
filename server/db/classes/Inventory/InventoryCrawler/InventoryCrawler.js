@@ -5,17 +5,25 @@ const ProgressBar   =       require('progress');
 
 class InventoryCrawler extends Inventory{
 
-  async fillCrawlProductsFromFile(filePath){
-    console.log(`read crawler products from ${filePath} ---`);
+  async fillCrawlProductsFromFile(filePath, title){
+    console.log(`\n\n--------------------------------------------\n\n`);
+    console.log(`${title} Crawler`);
+    console.log(`--- file: ${filePath} ---`);
+
     let products = JSON.parse(fs.readFileSync(filePath));
     await this.fixProducts(products);
 
-    console.log(`*** insert crawler products into db ***`);
     let bar = new ProgressBar('loading [:bar] :percent :etas', { total: products.length,complete: '=', incomplete: ' ' });
 
     for(let product of products){
-      await this.insertCrawlProduct(product);
-      bar.tick();   // process.stdout.write(`.`);
+      try{
+        await this.insertCrawlProduct(product);
+      }catch(e){
+
+      }finally{
+        bar.tick();   // process.stdout.write(`.`);
+      }
+
     }
     console.log(`<${products.length}> products inserted to db successfully`);
   }
@@ -31,14 +39,14 @@ class InventoryCrawler extends Inventory{
       `);
 
     await conn.sql(`
-        INSERT INTO products
+        INSERT IGNORE INTO products
           (barcode, product_name, brand_id, capacity, capacity_unit_id, verifiedCounter)
         VALUES
           (${product.barcode}, "${product.product_name}", ${new_brand.insertId}, ${product.capacity}, ${new_capacity_unit.insertId}, 0)
     `);
 
     await conn.sql(`
-        INSERT INTO product_category
+        INSERT IGNORE INTO product_category
           (barcode, category_id)
         VALUES
           (${product.barcode}, ${product.category_id})
@@ -58,9 +66,10 @@ class InventoryCrawler extends Inventory{
       else if(product.capacity_units_name === 'יחי')
         product.capacity_units_name = 'יחידה'
 
-      product.category_id = menuIndexParser(product.menuIndex);
+      if(!product.category_id)
+        product.category_id = menuIndexParser(product.menuIndex);
 
-      if(product.barcode.toString().length<11) //remove all illegal barcodes from array
+      if(product.barcode.toString().length<10) //remove all illegal barcodes from array
         products.splice(i,1);
     }
   }

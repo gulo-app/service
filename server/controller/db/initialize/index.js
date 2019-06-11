@@ -1,5 +1,6 @@
 const createDB        =   require('./create');
 const fillDB          =   require('./fill');
+
 const {ParamsError}   =   require('../../../config/errors');
 
 //initialize DB
@@ -12,7 +13,6 @@ const initializeDB = async (pass, isFill) => {
   if(isFill==='true' || isFill===true)
     fillDB.products();
   
-
   return true;
 }
 

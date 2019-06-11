@@ -11,7 +11,7 @@ const getListProducts = async (list_id) => {
     NATURAL JOIN product_category pc
     NATURAL JOIN categories
     WHERE lp.list_id=${list_id}
-    GROUP BY barcode
+    GROUP BY products.barcode
   `);
 
   return products;

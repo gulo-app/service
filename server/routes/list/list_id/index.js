@@ -48,20 +48,13 @@ router.post('/clear', auth, async(req,res) => {
   }catch(e){RES_ERROR(res,e)}
 })
 
-//share a list with user_id
-router.put('/:list_id/share', auth, async (req,res) => {
-  let {shares}  = req.body; //[user_id, user_id, ...]
-  let {user_id} = req.user;
-  let {list_id} = req.params;
-  try {
-    let cb = await ctrl.shareList(user_id, list_id, shares);
-    res.send(cb);
-  }catch(e){RES_ERROR(res,e)}
-})
-
-
 router.get('/shares', async (req, res) => {
   let cb = await ctrl.getListShares(req.list_id);
+  res.send(cb);
+})
+
+router.get('/bestShoppingCart', async (req,res) => {
+  let cb = await ctrl.getBestShoppingCart(req.list_id);
   res.send(cb);
 })
 

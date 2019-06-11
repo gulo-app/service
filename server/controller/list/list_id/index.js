@@ -159,12 +159,12 @@ const getBestShoppingCart = async (list_id) => {
               FROM list_products lp
               NATURAL JOIN products
               NATURAL JOIN shopping_cart_prices prices
-              WHERE lp.list_id=1
+              WHERE lp.list_id=${list_id}
           `);
   let firm_products = _.groupBy(products, 'shopping_cart_firm_id');
   for(let firm of firms){
-    firm.products       =   firm_products[firm.shopping_cart_firm_id];
-    firm.total_price   =   _.round(_.sumBy(firm.products, 'price'),2);
+    firm.products         =   firm_products[firm.shopping_cart_firm_id];
+    firm.total_price      =   _.round(_.sumBy(firm.products, 'price'),2);
     for(let p of firm.products)
       p.price = _.round(p.price, 2);
   }

@@ -13,6 +13,10 @@ router.get('/', (req, res) => {
     res.send("this is index baby");
 });
 
+router.post('/test', (req, res) => {
+  res.send({test: 'ok'});
+})
+
 router.all('*', (req, res) => {
   res.status(404).send();
 })

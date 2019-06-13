@@ -16,8 +16,8 @@ module.exports = () => {
       if(!googleId || !tokenId)
         return done('googleID || token are missing', null);
 
-      const isTokenValid = await verifyGoogleToken(tokenId);
-      if(IS_PROD && !isTokenValid) return done('tokenId is invalid', null);
+      // const isTokenValid = await verifyGoogleToken(tokenId);
+      // if(IS_PROD && !isTokenValid) return done('tokenId is invalid', null);
 
       let isExists = await conn.sql(`SELECT * FROM users WHERE googleID='${googleId}'`);
       if(isExists.length===0)

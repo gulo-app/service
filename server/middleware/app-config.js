@@ -21,7 +21,7 @@ module.exports = (app) => {
     console.log("incoming request");
     console.log(req.get('origin'));
     var allowedOrigins = [
-                          'http://localhost', 
+                          'http://localhost',
                           'http://localhost:3000',
                           'http://localhost://8605', 'https://localhost://8605', 'localhost://8605',
                           'https://gulo-client.herokuapp.com', 'http://gulo-client.herokuapp.com',

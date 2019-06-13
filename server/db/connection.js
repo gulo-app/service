@@ -2,7 +2,7 @@ const mysql = require('mysql');
 const IS_PROD  =  process.env.IS_PROD;
 
 const conn  = mysql.createPool({
-  host: IS_PROD ? '35.205.128.46' : 'localhost', //process.env.isProd ? '35.226.42.229' : 'localhost',
+  host: IS_PROD ? '185.162.126.152' : 'localhost', //process.env.isProd ? '35.226.42.229' : 'localhost',
   user: "gulo",
   password: "shenkar",
   database: "gulo",

@@ -13,7 +13,7 @@ const client = async () => {
     res.sendFile(path.join(buildPath, '/index.html'));
   })
 
-  if(process.env.IS_MONTV){  //montv production provide SSL connection
+  if(process.env.IS_MONTV && 2===1){  //montv production provide SSL connection
       var ssl_credentials = {key:  fs.readFileSync(`../../nodejs/montv-service/server/security/ssl/montv.pem`, 'utf8'), cert: fs.readFileSync(`../../nodejs/montv-service/server/security/ssl/montv.cer`, 'utf8')};
 
       const httpsServer = https.createServer(ssl_credentials, app);

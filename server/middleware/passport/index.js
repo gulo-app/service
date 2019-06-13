@@ -10,25 +10,28 @@ const IS_PROD             =     process.env.IS_PROD;
 
 module.exports = () => {
   passport.use('googleID', new CustomStrategy(async function(req, done) {
-      const profile     =   req.body;
-      const {googleId, tokenId}  =   profile;
+      let {idToken} = req.body;
 
-      if(!googleId || !tokenId)
-        return done('googleID || token are missing', null);
+      if(!idToken)
+        return done('idToken is missing', null);
 
-      // const isTokenValid = await verifyGoogleToken(tokenId);
+      const user = await verifyGoogleToken(idToken);
+      if(!user)
+        return done('idToken is missing', null);
+
+      console.log(user);
       // if(IS_PROD && !isTokenValid) return done('tokenId is invalid', null);
 
-      let isExists = await conn.sql(`SELECT * FROM users WHERE googleID='${googleId}'`);
+      let isExists = await conn.sql(`SELECT * FROM users WHERE googleID='${user.sub}'`);
       if(isExists.length===0)
-        await ctrlUser.GoogleRegister(profile);
+        await ctrlUser.GoogleRegister(user);
 
-      let user = await ctrlUser.getUserByMail(profile.email);
+      let db_user = await ctrlUser.getUserByMail(user.email);
 
-      if(user.pic!==profile.imageUrl)
-        await ctrlUser.setProfilePic(user, profile.imageUrl);
+      if(db_user.pic!==user.picture)
+        await ctrlUser.setProfilePic(db_user, user.picture);
 
-      done(null, user);
+      done(null, db_user);
     }
   ));
 
@@ -70,8 +73,8 @@ module.exports = () => {
 const verifyGoogleToken = async (tokenId) => {
   return new Promise((resolve, reject) => {
     googleVerifier.verify(tokenId, GOOGLE_CID, function (err, tokenInfo) {
-      if(err) return resolve(false);
-      resolve(true)
+      if(err) return resolve(null);
+      resolve(tokenInfo)
     });
   })
 }
@@ -90,3 +93,54 @@ const verifyFacebookToken = async (tokenId) => {
       })
   })
 }
+
+/*
+
+passport.use('googleID', new CustomStrategy(async function(req, done) {
+    const profile     =   req.body;
+    const {googleId, tokenId}  =   profile;
+
+    if(!googleId || !tokenId)
+      return done('googleID || token are missing', null);
+
+    const isTokenValid = await verifyGoogleToken(tokenId);
+    if(IS_PROD && !isTokenValid) return done('tokenId is invalid', null);
+
+    let isExists = await conn.sql(`SELECT * FROM users WHERE googleID='${googleId}'`);
+    if(isExists.length===0)
+      await ctrlUser.GoogleRegister(profile);
+
+    let user = await ctrlUser.getUserByMail(profile.email);
+
+    if(user.pic!==profile.imageUrl)
+      await ctrlUser.setProfilePic(user, profile.imageUrl);
+
+    done(null, user);
+  }
+));
+
+passport.use('facebookID', new CustomStrategy(async function(req, done) {
+    const profile     =   req.body;
+    const facebookId  =   req.body.id;
+    const tokenId     =   req.body.accessToken;
+
+    if(!facebookId || !tokenId)
+      return done('facebookID || token are missing', null);
+
+    const isTokenValid = await verifyFacebookToken(tokenId);
+    if(IS_PROD && !isTokenValid) return done('tokenId is invalid', null);
+
+    let isExists = await conn.sql(`SELECT user_id FROM users WHERE facebookID='${facebookId}'`);
+    if(isExists.length===0)
+      await ctrlUser.FacebookRegister(profile);
+
+    let user = await ctrlUser.getUserByMail(profile.email);
+
+    if(user.pic!==profile.picture.data.url)
+      await ctrlUser.setProfilePic(user, profile.picture.data.url);
+
+    done(null, user);
+  }
+));
+
+*/

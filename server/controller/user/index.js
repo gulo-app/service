@@ -22,16 +22,16 @@ const getUserByID = async (user_id) => {
 }
 
 
-const GoogleRegister = async (profile) => {
+const GoogleRegister = async (user) => {
   let cb = await conn.sql(`
             INSERT INTO users
               (mail, googleID, firstname, lastname, pic)
             VALUES
-              ('${profile.email}','${profile.googleId}','${profile.givenName}','${profile.familyName}','${profile.imageUrl}')
+              ('${user.email}','${user.sub}','${user.given_name}','${user.family_name}','${user.picture}')
             ON DUPLICATE KEY UPDATE
-              googleID = '${profile.googleId}'
+              googleID = '${user.sub}'
           `);
-  let users = await conn.sql(`SELECT * FROM users WHERE googleID='${profile.googleId}'`);
+  let users = await conn.sql(`SELECT * FROM users WHERE googleID='${user.sub}'`);
   return users[0];
 }
 
@@ -49,6 +49,36 @@ const FacebookRegister = async (profile) => {
   let users = await conn.sql(`SELECT * FROM users WHERE facebookID='${profile.id}'`);
   return users[0];
 }
+
+
+
+// const GoogleRegister = async (profile) => {
+//   let cb = await conn.sql(`
+//             INSERT INTO users
+//               (mail, googleID, firstname, lastname, pic)
+//             VALUES
+//               ('${profile.email}','${profile.googleId}','${profile.givenName}','${profile.familyName}','${profile.imageUrl}')
+//             ON DUPLICATE KEY UPDATE
+//               googleID = '${profile.googleId}'
+//           `);
+//   let users = await conn.sql(`SELECT * FROM users WHERE googleID='${profile.googleId}'`);
+//   return users[0];
+// }
+//
+// const FacebookRegister = async (profile) => {
+//   console.log(profile.name);
+//   let fullname = profile.name.split(' ');
+//   let cb = await conn.sql(`
+//             INSERT INTO users
+//               (mail, facebookID, firstname, lastname, pic)
+//             VALUES
+//               ('${profile.email}','${profile.id}','${fullname[0]}','${fullname[1]}','${profile.picture.data.url}')
+//             ON DUPLICATE KEY UPDATE
+//                 facebookID = '${profile.id}'
+//           `);
+//   let users = await conn.sql(`SELECT * FROM users WHERE facebookID='${profile.id}'`);
+//   return users[0];
+// }
 
 const setProfilePic = async (user, newPic) => {
   await conn.sql(`UPDATE users SET pic='${newPic}' WHERE user_id=${user.user_id}`);

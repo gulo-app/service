@@ -33,6 +33,19 @@ module.exports = () => {
     }
   ));
 
+  passport.use('autoByMail', new CustomStrategy(async function(req, done) { //for debugs only
+      let {email} = req.body;
+      if(!email)
+        return done('email param is missing', null);
+
+      const user = await ctrlUser.getUserByMail(email);      
+      if(!user)
+        return done('email not exists', null);
+
+      done(null, user);
+    }
+  ));
+
   // passport.use('googleID', new CustomStrategy(async function(req, done) {
   //     let {idToken} = req.body;
   //     if(!idToken)

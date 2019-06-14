@@ -18,6 +18,20 @@ router.post('/firebase', (req, res) => {
   })(req, res);
 });
 
+router.post('/auto-login', (req, res) => {
+  passport.authenticate('autoByMail', (err, user) => {
+    if(err)
+      return res.status(500).send(err);
+    if(!user)
+      return res.status(500).send('Credentials Inavlid');
+
+    req.login(user, (err) => {
+      return res.send(user);
+    })
+  })(req, res);
+});
+
+
 // router.post('/google', (req, res) => {
 //   passport.authenticate('googleID', (err, user) => {
 //     if(err)

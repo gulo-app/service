@@ -7,11 +7,3 @@ admin.initializeApp({
 });
 
 module.exports = admin;
-// module.exports = async (app) => {
-//   admin.initializeApp({
-//     credential: admin.credential.cert(serviceAccount),
-//     databaseURL: "https://gulo-234107.firebaseio.com"
-//   });
-//
-//   app.set('fbAdmin', admin);
-// }

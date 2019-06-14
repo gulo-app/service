@@ -17,7 +17,7 @@ class InventoryCrawler extends Inventory{
 
     for(let product of products){
       try{
-        await this.insertCrawlProduct(product);
+        await this.insertCrawlProduct(product, title==='Shufersal' ? true : false);
       }catch(e){
 
       }finally{
@@ -28,15 +28,22 @@ class InventoryCrawler extends Inventory{
     console.log(`<${products.length}> products inserted to db successfully`);
   }
 
-  async insertCrawlProduct(product){
+  async insertCrawlProduct(product, isShufersal){
     let new_brand = await conn.sql(`
           INSERT INTO brands (brand_name) VALUES ("${product.firm_name}")
           ON DUPLICATE KEY UPDATE brand_id = LAST_INSERT_ID(brand_id);
       `);
-    let new_capacity_unit = await conn.sql(`
-          INSERT INTO capacity_units (unit_name) VALUES ("${product.capacity_units_name}")
-          ON DUPLICATE KEY UPDATE capacity_unit_id = LAST_INSERT_ID(capacity_unit_id);
-      `);
+
+    let new_capacity_unit = {};
+    if(isShufersal){
+        new_capacity_unit.insertId = product.capacity_units_name;
+    } else {
+      new_capacity_unit= await conn.sql(`
+            INSERT INTO capacity_units (unit_name) VALUES ("${product.capacity_units_name}")
+            ON DUPLICATE KEY UPDATE capacity_unit_id = LAST_INSERT_ID(capacity_unit_id);
+        `);
+    }
+
 
     await conn.sql(`
         INSERT IGNORE INTO products

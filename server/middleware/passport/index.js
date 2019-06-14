@@ -38,7 +38,7 @@ module.exports = () => {
       if(!email)
         return done('email param is missing', null);
 
-      const user = await ctrlUser.getUserByMail(email);      
+      const user = await ctrlUser.getUserByMail(email);       
       if(!user)
         return done('email not exists', null);
 

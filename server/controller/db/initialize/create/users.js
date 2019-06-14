@@ -13,8 +13,6 @@ const users = async () => {
                               firstname   VARCHAR(50)   NOT NULL,
                               lastname    VARCHAR(50)   NOT NULL,
                               points      INT UNSIGNED  DEFAULT 0,
-                              googleID    VARCHAR(100)          ,
-                              facebookID  VARCHAR(100)          ,
                               pic         MEDIUMTEXT            ,
 
                               PRIMARY KEY (user_id),

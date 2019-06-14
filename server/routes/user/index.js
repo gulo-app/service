@@ -13,16 +13,7 @@ router.post('/logout', auth, (req,res) => {
   res.send(`goodbye`);
 })
 
-router.get('/test', (req,res) => {
-  res.send({data: 'this is test /GET'});
-})
-
-router.post('/test', (req,res) => {
-  let {data} = req.body;
-  res.send({verb: '/POST', data});
-})
-
-router.use('/getAllUsersButMe', auth, async (req,res) => {
+router.get('/getAllUsersButMe', auth, async (req,res) => {
   try{
     let users = await ctrl.getAllUsersButMe(req.user.user_id);
     res.send(users);

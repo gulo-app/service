@@ -6,7 +6,7 @@ const SessionStore  =   require('session-file-store')(session);
 const path          =   require('path');
 const passport      =   require('passport');
 const initPassport  =   require('./passport');
-const cors            =   require('cors')
+const cors          =   require('cors')
 
 initPassport();
 
@@ -45,7 +45,7 @@ module.exports = (app) => {
     origin: function (origin, callback) {
       callback(null,true);
     },
-    methods: ['GET'],
+    methods: ['GET', 'PUT', 'POST', 'DELETE', '[PATCH]', 'OPTIONS'],
     credentials: true,
     optionsSuccessStatus: 200
   }

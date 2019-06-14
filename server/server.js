@@ -7,9 +7,10 @@ const conn        =   require('./db/connection');
 const routes      =   require('./routes');
 const fs          =   require('fs');
 const socket      =   require('./socket');
+const firebase    =   require('./firebase');
 
 const server = async () => {
-  appConfig(app);
+  appConfig(app);  
   app.use('/', routes);
 
   //create HTTP(dev) || HTTPS(prod) server

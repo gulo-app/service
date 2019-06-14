@@ -17,7 +17,7 @@ PORT = process.env.PORT || 9400;
 module.exports = {
   PORT,
   RES_ERROR,    //const Error callback,
-  GOOGLE_CID:   '180978526897-8o5c4k9vakqt2eqfbgd2u9ng5jaobl4j.apps.googleusercontent.com',
+  GOOGLE_CID:   '180978526897-8o5c4k9vakqt2eqfbgd2u9ng5jaobl4j.apps.googleusercontent.com', //'180978526897-8o5c4k9vakqt2eqfbgd2u9ng5jaobl4j.apps.googleusercontent.com',
   VERIFIED_COUNTER: 3   //number of times a new product needs to be confirmed to officially enter inventory
 };
 

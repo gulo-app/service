@@ -7,19 +7,18 @@ const {GOOGLE_CID}        =     require('../../config');
 const ctrlUser            =     require('../../controller/user');
 const conn                =     require('../../db/connection');
 const IS_PROD             =     process.env.IS_PROD;
+const fbAdmin             =     require('../../firebase');
 
 module.exports = () => {
   passport.use('googleID', new CustomStrategy(async function(req, done) {
       let {idToken} = req.body;
-
       if(!idToken)
         return done('idToken is missing', null);
 
-      const user = await verifyGoogleToken(idToken);
+      const user = await verifyGoogleTokenByFirebaseAdmin(idToken);
       if(!user)
         return done('idToken is missing', null);
 
-      console.log(user);
       // if(IS_PROD && !isTokenValid) return done('tokenId is invalid', null);
 
       let isExists = await conn.sql(`SELECT * FROM users WHERE googleID='${user.sub}'`);
@@ -71,13 +70,25 @@ module.exports = () => {
 
 
 const verifyGoogleToken = async (tokenId) => {
+  console.log(tokenId);
   return new Promise((resolve, reject) => {
     googleVerifier.verify(tokenId, GOOGLE_CID, function (err, tokenInfo) {
+      console.log(tokenInfo);
       if(err) return resolve(null);
       resolve(tokenInfo)
     });
   })
 }
+
+const verifyGoogleTokenByFirebaseAdmin = async (idToken) => {
+  return new Promise((resolve,reject) => {
+    fbAdmin.auth().verifyIdToken(idToken).then(function(cb) {
+        resolve(cb);
+      }).catch(function(error) {
+        reolsve(null);
+      })
+  })
+};
 
 const verifyFacebookToken = async (tokenId) => {
   return new Promise((resolve, reject) => {

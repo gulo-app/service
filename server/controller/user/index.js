@@ -21,6 +21,19 @@ const getUserByID = async (user_id) => {
   return user;
 }
 
+const register = async (user) => {
+  console.log("register!");  
+  let names = user.name.split(' ');
+  let cb = await conn.sql(`
+            INSERT INTO users
+              (mail, firstname, lastname, pic)
+            VALUES
+              ('${user.email}', '${names[0]}','${names[1]}','${user.picture}')
+          `);
+  let users = await conn.sql(`SELECT * FROM users WHERE mail='${user.email}'`);
+  return users[0];
+}
+
 
 const GoogleRegister = async (user) => {
   let names = user.name.split(' ');
@@ -36,18 +49,17 @@ const GoogleRegister = async (user) => {
   return users[0];
 }
 
-const FacebookRegister = async (profile) => {
-  console.log(profile.name);
-  let fullname = profile.name.split(' ');
+const FacebookRegister = async (user) => {
+  let names = user.name.split(' ');
   let cb = await conn.sql(`
             INSERT INTO users
               (mail, facebookID, firstname, lastname, pic)
             VALUES
-              ('${profile.email}','${profile.id}','${fullname[0]}','${fullname[1]}','${profile.picture.data.url}')
+              ('${user.email}','${user.sub}','${names[0]}','${names[1]}','${user.picture}')
             ON DUPLICATE KEY UPDATE
-                facebookID = '${profile.id}'
+              facebookID = '${user.sub}'
           `);
-  let users = await conn.sql(`SELECT * FROM users WHERE facebookID='${profile.id}'`);
+  let users = await conn.sql(`SELECT * FROM users WHERE facebookID='${user.sub}'`);
   return users[0];
 }
 
@@ -84,18 +96,6 @@ const FacebookRegister = async (profile) => {
 const setProfilePic = async (user, newPic) => {
   await conn.sql(`UPDATE users SET pic='${newPic}' WHERE user_id=${user.user_id}`);
   user.pic = newPic;
-}
-
-const register = async (user) => {
-  if(Object.keys(user).length<4)
-    throw new ParamsError('Registration failed: firstname || lastname || email are missing.');
-
-  let cb = await conn.sql(`INSERT INTO users
-                    (mail, googleToken, firstname, lastname)
-                      VALUES
-                    ('${user.mail}','${user.googleToken}','${user.firstname}','${user.lastname}')
-                `);
-
 }
 
 const getAllUsersButMe = async (myUserID) => {

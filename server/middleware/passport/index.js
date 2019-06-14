@@ -10,8 +10,8 @@ const IS_PROD             =     process.env.IS_PROD;
 const fbAdmin             =     require('../../firebase');
 
 module.exports = () => {
-  passport.use('googleID', new CustomStrategy(async function(req, done) {
-      let {idToken} = req.body;
+  passport.use('idToken', new CustomStrategy(async function(req, done) {
+      let {idToken, email} = req.body;
       if(!idToken)
         return done('idToken is missing', null);
 
@@ -19,11 +19,10 @@ module.exports = () => {
       if(!user)
         return done('idToken is missing', null);
 
-      // if(IS_PROD && !isTokenValid) return done('tokenId is invalid', null);
-
-      let isExists = await conn.sql(`SELECT * FROM users WHERE googleID='${user.sub}'`);
+      user.email = email;
+      let isExists = await conn.sql(`SELECT * FROM users WHERE mail='${user.email}'`);
       if(isExists.length===0)
-        await ctrlUser.GoogleRegister(user);
+        await ctrlUser.register(user);
 
       let db_user = await ctrlUser.getUserByMail(user.email);
 
@@ -34,29 +33,49 @@ module.exports = () => {
     }
   ));
 
-  passport.use('facebookID', new CustomStrategy(async function(req, done) {
-      const profile     =   req.body;
-      const facebookId  =   req.body.id;
-      const tokenId     =   req.body.accessToken;
-
-      if(!facebookId || !tokenId)
-        return done('facebookID || token are missing', null);
-
-      const isTokenValid = await verifyFacebookToken(tokenId);
-      if(IS_PROD && !isTokenValid) return done('tokenId is invalid', null);
-
-      let isExists = await conn.sql(`SELECT user_id FROM users WHERE facebookID='${facebookId}'`);
-      if(isExists.length===0)
-        await ctrlUser.FacebookRegister(profile);
-
-      let user = await ctrlUser.getUserByMail(profile.email);
-
-      if(user.pic!==profile.picture.data.url)
-        await ctrlUser.setProfilePic(user, profile.picture.data.url);
-
-      done(null, user);
-    }
-  ));
+  // passport.use('googleID', new CustomStrategy(async function(req, done) {
+  //     let {idToken} = req.body;
+  //     if(!idToken)
+  //       return done('idToken is missing', null);
+  //
+  //     const user = await verifyGoogleTokenByFirebaseAdmin(idToken);
+  //     if(!user)
+  //       return done('idToken is missing', null);
+  //
+  //     let isExists = await conn.sql(`SELECT * FROM users WHERE googleID='${user.sub}'`);
+  //     if(isExists.length===0)
+  //       await ctrlUser.GoogleRegister(user);
+  //
+  //     let db_user = await ctrlUser.getUserByMail(user.email);
+  //
+  //     if(db_user.pic!==user.picture)
+  //       await ctrlUser.setProfilePic(db_user, user.picture);
+  //
+  //     done(null, db_user);
+  //   }
+  // ));
+  //
+  // passport.use('facebookID', new CustomStrategy(async function(req, done) {
+  //     let {idToken} = req.body;
+  //     if(!idToken)
+  //       return done('idToken is missing', null);
+  //
+  //     const user = await verifyGoogleTokenByFirebaseAdmin(idToken);
+  //     if(!user)
+  //       return done('idToken is missing', null);
+  //
+  //     let isExists = await conn.sql(`SELECT * FROM users WHERE facebookID='${user.sub}'`);
+  //     if(isExists.length===0)
+  //       await ctrlUser.FacebookRegister(user);
+  //
+  //     let db_user = await ctrlUser.getUserByMail(user.email);
+  //
+  //     if(db_user.pic!==user.picture)
+  //       await ctrlUser.setProfilePic(db_user, user.picture);
+  //
+  //     done(null, db_user);
+  //   }
+  // ));
 
   passport.serializeUser((user, done) => {  //trigger on req.login()
     done(null, user.mail); //write user_id into current session file
@@ -69,17 +88,6 @@ module.exports = () => {
 }
 
 
-const verifyGoogleToken = async (tokenId) => {
-  console.log(tokenId);
-  return new Promise((resolve, reject) => {
-    googleVerifier.verify(tokenId, GOOGLE_CID, function (err, tokenInfo) {
-      console.log(tokenInfo);
-      if(err) return resolve(null);
-      resolve(tokenInfo)
-    });
-  })
-}
-
 const verifyGoogleTokenByFirebaseAdmin = async (idToken) => {
   return new Promise((resolve,reject) => {
     fbAdmin.auth().verifyIdToken(idToken).then(function(cb) {
@@ -90,20 +98,31 @@ const verifyGoogleTokenByFirebaseAdmin = async (idToken) => {
   })
 };
 
-const verifyFacebookToken = async (tokenId) => {
-  return new Promise((resolve, reject) => {
-      const url = `https://graph.facebook.com/me?access_token=${tokenId}`;
-      axios.get(url).then((res) => {
-        if(res.data && res.data.id)
-          return resolve(true);
-
-        return resolve(false);
-      }).catch((e) => {
-        console.log('failed cb');
-        return resolve(false);
-      })
-  })
-}
+// const verifyGoogleToken = async (tokenId) => {
+//   console.log(tokenId);
+//   return new Promise((resolve, reject) => {
+//     googleVerifier.verify(tokenId, GOOGLE_CID, function (err, tokenInfo) {
+//       console.log(tokenInfo);
+//       if(err) return resolve(null);
+//       resolve(tokenInfo)
+//     });
+//   })
+// }
+//
+// const verifyFacebookToken = async (tokenId) => {
+//   return new Promise((resolve, reject) => {
+//       const url = `https://graph.facebook.com/me?access_token=${tokenId}`;
+//       axios.get(url).then((res) => {
+//         if(res.data && res.data.id)
+//           return resolve(true);
+//
+//         return resolve(false);
+//       }).catch((e) => {
+//         console.log('failed cb');
+//         return resolve(false);
+//       })
+//   })
+// }
 
 /*
 

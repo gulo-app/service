@@ -23,11 +23,12 @@ const getUserByID = async (user_id) => {
 
 
 const GoogleRegister = async (user) => {
+  let names = user.name.split(' ');
   let cb = await conn.sql(`
             INSERT INTO users
               (mail, googleID, firstname, lastname, pic)
             VALUES
-              ('${user.email}','${user.sub}','${user.given_name}','${user.family_name}','${user.picture}')
+              ('${user.email}','${user.sub}','${names[0]}','${names[1]}','${user.picture}')
             ON DUPLICATE KEY UPDATE
               googleID = '${user.sub}'
           `);

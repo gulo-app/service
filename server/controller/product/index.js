@@ -50,6 +50,7 @@ const insertUserProduct = async (newProduct, noti, io) => {
     throw new ParamsError('notification is illegal');
 
   newProduct.product_name = await buildProductName(newProduct); //build product fullName: product_name - brand_name - capcity - capcity_units;
+  newProudct.product_name = newProduct.product_name.replace(/"/g,"''");
 
   if(!newProduct.brand_id || newProduct.brand_id===0){ //if Brand not exists -> will be added to brands
     let cb = await conn.sql(`INSERT INTO brands (brand_name) values ('${newProduct.brand_text}')`);
@@ -61,7 +62,7 @@ const insertUserProduct = async (newProduct, noti, io) => {
     INSERT INTO products
       (barcode, product_name, brand_id, capacity, capacity_unit_id, verifiedCounter)
     VALUES
-      (${newProduct.barcode}, '${newProduct.product_name}', ${newProduct.brand_id}, ${newProduct.capacity}, ${newProduct.capacity_unit_id}, ${VERIFIED_COUNTER});
+      (${newProduct.barcode}, "${newProduct.product_name}", ${newProduct.brand_id}, ${newProduct.capacity}, ${newProduct.capacity_unit_id}, ${VERIFIED_COUNTER});
   `);
 
   //assign category to product

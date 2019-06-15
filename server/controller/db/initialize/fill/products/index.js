@@ -10,7 +10,7 @@ const fillProducts = async () => {
     await inventoryCrawler.fillCrawlProductsFromFile(RAMI_LEVY_JSON, 'Rami-Levy');
     await inventoryCrawler.fillCrawlProductsFromFile(SHUFERSAL_JSON, 'Shufersal');
 
-    // await prices_crawler.updatePrices();
+    await prices_crawler.updatePrices();
     console.log("\n\n *** initialization finished! *** \n\n");
 }
 module.exports = fillProducts;

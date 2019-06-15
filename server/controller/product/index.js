@@ -22,7 +22,11 @@ const getProduct = async (barcode) => {
   return product[0];
 }
 
-const removeProduct = async (product) => {
+const removeProduct = async (product, io) => {
+  let list_products = await conn.sql(`SELECT * FROM list_products WHERE barcode=${product.barcode}`);
+  for(let list_product of list_products) //delete all existing list_products
+    await socketEmitter.emitByList(io, list_product.list_id, 'deleteListProduct' , {list_id: list_product.list_id, product_id: list_product.id});
+
   await conn.sql(`DELETE FROM products WHERE barcode=${product.barcode}`);
   let brands = await conn.sql(`SELECT barcode,brand_id FROM products WHERE brand_id=${product.brand_id}`);
   if(brands.length===0) //Brand has no longer products on inventory. therefore -> will be deleted!
@@ -50,7 +54,7 @@ const insertUserProduct = async (newProduct, noti, io) => {
     throw new ParamsError('notification is illegal');
 
   newProduct.product_name = await buildProductName(newProduct); //build product fullName: product_name - brand_name - capcity - capcity_units;
-  newProudct.product_name = newProduct.product_name.replace(/"/g,"''");
+  newProduct.product_name = newProduct.product_name.replace(/"/g,"''");
 
   if(!newProduct.brand_id || newProduct.brand_id===0){ //if Brand not exists -> will be added to brands
     let cb = await conn.sql(`INSERT INTO brands (brand_name) values ('${newProduct.brand_text}')`);
@@ -97,7 +101,7 @@ const overwriteUserProduct = async (product, noti, io) => {
   if(noti.subject_id!==product.barcode) //check if notification is similiar to newProduct barcode. to avoid fakes notifications.
     throw new ParamsError('notification is illegal');
 
-  await removeProduct(product);
+  await removeProduct(product, io);
   await insertUserProduct(product, noti, io);
 
   let rel_notis = await conn.sql(`SELECT * FROM notifications WHERE

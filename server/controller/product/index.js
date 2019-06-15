@@ -71,7 +71,7 @@ const insertUserProduct = async (newProduct, noti, io) => {
 
   //UPDATE notifications for all list's users
   let rel_notis = await conn.sql(`SELECT * FROM notifications WHERE notification_type_id=3 AND status=1
-                                    AND triggerBy_id=${noti.triggerBy_id}`);
+                                    AND triggerBy_id=${noti.triggerBy_id} AND subject_id=${noti.subject_id}`);
   for(let tmp_noti of rel_notis){ //update Notification itself for each user in list
     /*
       for each scanNotFound product:

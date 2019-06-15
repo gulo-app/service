@@ -152,6 +152,15 @@ const forEachUserInList = async (list_id, func) => {
   await func(theList.creator.user_id);
 }
 
+const isUserInList = async (list_id, user_id) => {
+  let result = false;
+  await forEachUserInList(list_id, async (tmp_user_id) => {
+      if(tmp_user_id===user_id)
+        result = true;
+  });
+  return result;
+}
+
 const getBestShoppingCart = async (list_id) => {
   let firms     =   await conn.sql(`SELECT * FROM shopping_cart_firms`);
   let products  =   await conn.sql(`
@@ -182,5 +191,6 @@ module.exports = {
   getListCreator,
   getListDevice,
   forEachUserInList,
-  getBestShoppingCart
+  getBestShoppingCart,
+  isUserInList
 }

@@ -14,4 +14,12 @@ router.post('/scan/:barcode', async (req,res) => {
   }catch(e){RES_ERROR(res,e)};
 })
 
+router.post('/scanByMobile/:list_id/:barcode', async (req,res) => {
+  try{
+    await ctrl.scanByMobile(req.user, req.params.list_id, req.params.barcode, req.app.get('io'));
+    res.send();
+  }catch(e){RES_ERROR(res,e)};
+})
+
+
 module.exports = router;

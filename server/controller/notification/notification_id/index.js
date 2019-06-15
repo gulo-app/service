@@ -29,7 +29,8 @@ const buildNotification = async (noti) => {
       break;
 
     case 3: //scan not exists
-      noti.list_id  =  await require('../../device').getDeviceListID(noti.triggerBy_id);
+      //noti.list_id  =  await require('../../device').getDeviceListID(noti.triggerBy_id);
+      noti.list_id    =  noti.triggerBy_id;
       if(status===1){ //scan not exists at all
         noti.title.primary    =   `מוצר נסרק ולא זוהה`;
         noti.title.secondary  =   `ברקוד: <${noti.subject_id}>`;
@@ -39,7 +40,8 @@ const buildNotification = async (noti) => {
       }
       break;
     case 4: //verify product after scanned
-      noti.list_id  =  await require('../../device').getDeviceListID(noti.triggerBy_id);
+      //noti.list_id  =  await require('../../device').getDeviceListID(noti.triggerBy_id);
+      noti.list_id    =  noti.triggerBy_id;
       noti.product  =  await require('../../product').getProduct(noti.subject_id);
       if(status===1){
         noti.title.primary    =   `מוצר נסרק ולא זוהה`;

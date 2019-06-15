@@ -4,8 +4,8 @@ const _                                             =   require('lodash');
 const {getProduct}                                  =   require('../product');
 const {getListProduct}                              =   require('../list/list_id/product/product_id');
 const ctrlNotify                                    =   require('../notification');
-const {insertProductToList, forEachUserInList}      =   require('../list/list_id');
 const {ParamsError, AuthError, ScanError}           =   require('../../config/errors');
+const {insertProductToList, forEachUserInList, isUserInList}      =   require('../list/list_id');
 
 
 const verifyDevice = async (device) => {
@@ -59,14 +59,14 @@ const scan = async(device, barcode, io) => {
   let product = await getProduct(barcode);
   if(!product){ // *** PRODUCT NOT EXISTS AT ALL. send notification to all List's users
     await forEachUserInList(list_id, async (notifier_id) => {
-        await ctrlNotify.scanNotExists(io, notifier_id, device.id, barcode);
+        await ctrlNotify.scanNotExists(io, notifier_id, list_id, barcode);
     });
     throw new ScanError('product not exists on inventory');
   }
 
   if(product.verifiedCounter>0){ //product was inserted by other user -> need to be verified
     await forEachUserInList(list_id, async (notifier_id) => {
-        await ctrlNotify.verifyInsertedProduct(io, notifier_id, device.id, barcode);
+        await ctrlNotify.verifyInsertedProduct(io, notifier_id, list_id, barcode);
     });
     throw new ScanError('product need to be verified');
   }
@@ -78,10 +78,38 @@ const scan = async(device, barcode, io) => {
   return await list_product;
 }
 
+const scanByMobile = async(user, list_id, barcode, io) => {
+  if(!user || !list_id || !barcode)
+    throw new ParamsError('params invalid');
+
+  let isListBelongsUser = await isUserInList(list_id, user.user_id);
+  if(!isListBelongsUser)
+    throw new AuthError('user not in list!');
+
+  let product = await getProduct(barcode);
+  if(!product){ // *** PRODUCT NOT EXISTS AT ALL. send notification to all List's users
+    await ctrlNotify.scanNotExists(io, user.user_id, list_id, barcode);
+    return;
+  }
+
+  if(product.verifiedCounter>0){ //product was inserted by other user -> need to be verified
+    await ctrlNotify.verifyInsertedProduct(io, user.user_id, list_id, barcode);
+    return;
+  }
+
+  let list_product = await insertProductToList(io, list_id, product.barcode);
+  if(!list_product)
+    throw new ScanError('insert product to list failed');
+
+  return await list_product;
+}
+
+
 module.exports = {
   createDevice,
   verifyDevice,
   isDeviceConnected,
   scan,
+  scanByMobile,
   getDeviceListID
 }

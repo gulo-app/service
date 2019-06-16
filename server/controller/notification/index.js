@@ -2,6 +2,8 @@ const conn                        =   require('../../db/connection');
 const {ParamsError, AuthError}    =   require('../../config/errors');
 const {buildNotification, getNotification}         =   require('./notification_id');
 const socketEmitter               =   require('../socket/emitter');
+const fbAdmin                     =   require('../../firebase');
+
 
 const addNotification = async (io, type, status, notifier_id, triggerBy_id, subject_id) => {
   let cb = await conn.sql(`
@@ -16,6 +18,21 @@ const addNotification = async (io, type, status, notifier_id, triggerBy_id, subj
   let notification =  await getNotification(cb.insertId);
   await socketEmitter.emitByUser(io, notifier_id, 'newNotification' , notification);
   return notification;
+}
+
+const sendFirebaseNotification = async (notification) => {
+  // fbAdmin.messaging().sendToDevice(registrationToken, payload, options)
+  // .then(function(response) {
+  //   console.log("Successfully sent message:", response);
+  // })
+  // .catch(function(error) {
+  //   console.log("Error sending message:", error);
+  // });
+}
+
+const updateFirebaseNotificationToken = async (user, token) => {
+  await conn.sql(`INSERT IGNORE INTO firebase_notification_tokens (user_id, noti_token) VALUES (${user.user_id}, "${token}")`);
+  return true;
 }
 
 const shareListRequest = async (io, notifier_id, triggerBy_id, list_id) => {
@@ -92,5 +109,6 @@ module.exports = {
   getAllNotifications,
   unNewNotifications,
   scanNotExists,
-  verifyInsertedProduct
+  verifyInsertedProduct,
+  updateFirebaseNotificationToken
 }

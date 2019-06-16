@@ -16,8 +16,7 @@ router.get('/', auth, async (req,res) => {
   try {
     let notifications = await ctrl.getAllNotifications(req.user);
     res.send(notifications);
-  }
-  catch(e){RES_ERROR(res,e)}
+  }catch(e){RES_ERROR(res,e)}
 })
 
 router.post('/unNew', auth, async (req,res) => {
@@ -25,8 +24,15 @@ router.post('/unNew', auth, async (req,res) => {
     await ctrl.unNewNotifications(req.user);
     let notifications = await ctrl.getAllNotifications(req.user);
     res.send(notifications);
-  }
-  catch(e){RES_ERROR(res,e)}
+  }catch(e){RES_ERROR(res,e)}
+})
+
+router.post('/updateFirebaseNotificationToken', auth, async (req, res) => {
+  try{
+    let {token} = req.body;
+    await ctrl.updateFirebaseNotificationToken(req.user, token);
+    res.send();
+  }catch(e){RES_ERROR(res,e)}
 })
 
 

@@ -6,6 +6,7 @@ module.exports = async () => {
   await notifications();
   await fill_types();
   await fill_types_status();
+  await firebase_notification_tokens();
   return;
 }
 
@@ -95,4 +96,14 @@ const fill_types_status = async () => {
       (4, 10,  0, 'מוצר אומת'),
       (4, 100, 0, 'מוצר נערך מחדש')
   `);
+}
+
+const firebase_notification_tokens = async () =>{
+  await conn.sql(`CREATE TABLE firebase_notification_tokens (
+                      user_id                   INT UNSIGNED,
+                      noti_token                VARCHAR(255) NOT NULL,
+
+                      PRIMARY KEY (user_id, noti_token),
+                      FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE ON UPDATE CASCADE
+                  ) ENGINE=InnoDB`);
 }

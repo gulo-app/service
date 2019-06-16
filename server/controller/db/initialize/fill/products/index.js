@@ -7,8 +7,10 @@ const prices_crawler      =       require(`${process.env.PWD}/controller/db/pric
 
 const fillProducts = async () => {
     const inventoryCrawler = new InventoryCrawler();
+
     await inventoryCrawler.fillCrawlProductsFromFile(RAMI_LEVY_JSON, 'Rami-Levy');
     await inventoryCrawler.fillCrawlProductsFromFile(SHUFERSAL_JSON, 'Shufersal');
+    await inventoryCrawler.fillManualProducts();
 
     await prices_crawler.updatePrices();
     console.log("\n\n *** initialization finished! *** \n\n");

@@ -1,7 +1,8 @@
-const fs            =       require('fs');
-const Inventory     =       require('../Inventory');
-const conn          =       require('../../../../db/connection');
-const ProgressBar   =       require('progress');
+const fs              =       require('fs');
+const Inventory       =       require('../Inventory');
+const conn            =       require('../../../../db/connection');
+const ProgressBar     =       require('progress');
+const manualProducts  =       require('./manual-products');
 
 class InventoryCrawler extends Inventory{
 
@@ -14,10 +15,11 @@ class InventoryCrawler extends Inventory{
     await this.fixProducts(products);
 
     let bar = new ProgressBar('loading [:bar] :percent :etas', { total: products.length,complete: '=', incomplete: ' ' });
-
+    let counter = 0;
     for(let product of products){
       try{
         await this.insertCrawlProduct(product, title==='Shufersal' ? true : false);
+        counter++;
       }catch(e){
 
       }finally{
@@ -25,7 +27,27 @@ class InventoryCrawler extends Inventory{
       }
 
     }
-    console.log(`<${products.length}> products inserted to db successfully`);
+    console.log(`<${counter}> products inserted to db successfully`);
+  }
+
+  async fillManualProducts(){
+    console.log(`\n\n--------------------------------------------\n\n`);
+    console.log(`Fill Manual Products`);
+
+    let products = manualProducts;
+    let bar = new ProgressBar('loading [:bar] :percent :etas', { total: products.length,complete: '=', incomplete: ' ' });
+    let counter = 0;
+    for(let product of products){
+      try{
+        await this.insertCrawlProduct(product, false);
+        counter++;
+      }catch(e){
+        console.log(e.message);
+      }finally{
+        bar.tick();   // process.stdout.write(`.`);
+      }
+    }
+    console.log(`<${counter}> manual_products inserted to db successfully`);
   }
 
   async insertCrawlProduct(product, isShufersal){

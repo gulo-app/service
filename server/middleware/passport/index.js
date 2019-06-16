@@ -16,7 +16,7 @@ module.exports = () => {
         return done('idToken is missing', null);
 
       const user = await verifyGoogleTokenByFirebaseAdmin(idToken);
-      if(!user)
+      if(!user || !user.email)
         return done('idToken is missing', null);
 
       // user.email = email; //mail already parsed into user from token

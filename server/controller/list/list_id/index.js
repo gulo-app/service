@@ -174,6 +174,10 @@ const getBestShoppingCart = async (list_id) => {
   for(let firm of firms){
     firm.products         =   firm_products[firm.shopping_cart_firm_id];
     firm.total_price      =   _.round(_.sumBy(firm.products, 'price'),2).toFixed(2);
+
+    if(!firm.products)
+      continue;
+
     for(let p of firm.products)
       p.price = _.round(p.price, 2).toFixed(2);
   }

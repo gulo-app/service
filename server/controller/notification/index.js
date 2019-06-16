@@ -17,6 +17,7 @@ const addNotification = async (io, type, status, notifier_id, triggerBy_id, subj
 
   let notification =  await getNotification(cb.insertId);
   await socketEmitter.emitByUser(io, notifier_id, 'newNotification' , notification);
+  sendFirebaseNotification(notification);
   return notification;
 }
 
@@ -24,15 +25,13 @@ const sendFirebaseNotification = async (notification) => {
   let tokens = await conn.sql(`SELECT * FROM firebase_notification_tokens WHERE user_id=${notification.notifier_id}`);
   let payload = {
       notification: {
-        title: noti.title.primary,
-        body:  noti.title.secondary || ''
+        title: notification.title.primary,
+        body:  notification.title.secondary || ''
     }
   }
-  for(let token in tokens){
-    fbAdmin.messaging().sendToDevice(registrationToken, payload).then((res) => {
-      console.log("Successfully sent message:", res);
-    }).catch((err) => console.log("Error sending message:", err));
-  }
+
+  for(let token of tokens)
+    fbAdmin.messaging().sendToDevice(token.noti_token, payload).catch((err) => console.log("Error sending message:", err));
 }
 
 const updateFirebaseNotificationToken = async (user, token) => {

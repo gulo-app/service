@@ -19,7 +19,7 @@ module.exports = () => {
       if(!user)
         return done('idToken is missing', null);
 
-      user.email = email;
+      // user.email = email; //mail already parsed into user from token
       let isExists = await conn.sql(`SELECT * FROM users WHERE mail='${user.email}'`);
       if(isExists.length===0)
         await ctrlUser.register(user);
@@ -38,7 +38,7 @@ module.exports = () => {
       if(!email)
         return done('email param is missing', null);
 
-      const user = await ctrlUser.getUserByMail(email);       
+      const user = await ctrlUser.getUserByMail(email);
       if(!user)
         return done('email not exists', null);
 

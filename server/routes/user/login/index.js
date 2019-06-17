@@ -6,7 +6,7 @@ const auth              =   require('../../../middleware/auth');
 const {RES_ERROR}       =   require('../../../config');
 
 router.post('/firebase', (req, res) => {
-  passport.authenticate('idToken', (err, user) => {
+  passport.authenticate('firebase', (err, user) => {
     if(err)
       return res.status(500).send(err);
     if(!user)
@@ -18,8 +18,8 @@ router.post('/firebase', (req, res) => {
   })(req, res);
 });
 
-router.post('/auto-login', (req, res) => {
-  passport.authenticate('autoByMail', (err, user) => {
+router.post('/byAuthToken', (req, res) => {
+  passport.authenticate('byAuthToken', (err, user) => {
     if(err)
       return res.status(500).send(err);
     if(!user)

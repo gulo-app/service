@@ -13,7 +13,8 @@ const users = async () => {
                               firstname   VARCHAR(50)   NOT NULL,
                               lastname    VARCHAR(50)   NOT NULL,
                               points      INT UNSIGNED  DEFAULT 0,
-                              pic         MEDIUMTEXT            ,
+                              authToken   VARCHAR(100)  NOT NULL,
+                              pic         MEDIUMTEXT            ,                              
 
                               PRIMARY KEY (user_id),
                               UNIQUE KEY(mail)

@@ -78,7 +78,7 @@ const scan = async(device, barcode, io) => {
   return await list_product;
 }
 
-const scanByMobile = async(user, list_id, barcode, shoppingMode, io) => {  
+const scanByMobile = async(user, list_id, barcode, shoppingMode, io) => {
   if(!user || !list_id || !barcode)
     throw new ParamsError('params invalid');
 
@@ -89,7 +89,7 @@ const scanByMobile = async(user, list_id, barcode, shoppingMode, io) => {
   if(shoppingMode){ //meaning that scan should toggleCheck list_product if exists in list
     let list_products = await conn.sql(`SELECT id, barcode FROM list_products WHERE list_id=${list_id} AND barcode=${barcode}`);
     for(let list_product of list_products)
-      await ctrlListProduct.toggleCheck(list_id, list_product.id);
+      await ctrlListProduct.toggleCheck(list_id, list_product.id, io);
     return true;
   }
 

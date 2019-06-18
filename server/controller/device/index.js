@@ -2,7 +2,7 @@ const conn                                          =   require('../../db/connec
 const generatePassword                              =   require('generate-password');
 const _                                             =   require('lodash');
 const {getProduct}                                  =   require('../product');
-const {getListProduct}                              =   require('../list/list_id/product/product_id');
+const ctrlListProduct                               =   require('../list/list_id/product/product_id');
 const ctrlNotify                                    =   require('../notification');
 const {ParamsError, AuthError, ScanError}           =   require('../../config/errors');
 const {insertProductToList, forEachUserInList, isUserInList}      =   require('../list/list_id');
@@ -78,13 +78,20 @@ const scan = async(device, barcode, io) => {
   return await list_product;
 }
 
-const scanByMobile = async(user, list_id, barcode, io) => {
+const scanByMobile = async(user, list_id, barcode, shoppingMode, io) => {  
   if(!user || !list_id || !barcode)
     throw new ParamsError('params invalid');
 
   let isListBelongsUser = await isUserInList(list_id, user.user_id);
   if(!isListBelongsUser)
     throw new AuthError('user not in list!');
+
+  if(shoppingMode){ //meaning that scan should toggleCheck list_product if exists in list
+    let list_products = await conn.sql(`SELECT id, barcode FROM list_products WHERE list_id=${list_id} AND barcode=${barcode}`);
+    for(let list_product of list_products)
+      await ctrlListProduct.toggleCheck(list_id, list_product.id);
+    return true;
+  }
 
   let product = await getProduct(barcode);
   if(!product){ // *** PRODUCT NOT EXISTS AT ALL. send notification to all List's users
@@ -103,7 +110,6 @@ const scanByMobile = async(user, list_id, barcode, io) => {
 
   return await list_product;
 }
-
 
 module.exports = {
   createDevice,

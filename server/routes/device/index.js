@@ -16,7 +16,9 @@ router.post('/scan/:barcode', async (req,res) => {
 
 router.post('/scanByMobile/:list_id/:barcode', async (req,res) => {
   try{
-    await ctrl.scanByMobile(req.user, req.params.list_id, req.params.barcode, req.app.get('io'));
+    let {shoppingMode} = req.body;
+    let {list_id, barcode} = req.params;
+    await ctrl.scanByMobile(req.user, list_id, barcode, shoppingMode, req.app.get('io'));
     res.send();
   }catch(e){RES_ERROR(res,e)};
 })

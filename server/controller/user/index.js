@@ -1,5 +1,6 @@
 const conn            =   require('../../db/connection');
 const {ParamsError}   =   require('../../config/errors');
+const generatePassword    =   require('generate-password');
 
 const getUserByID = async (user_id) => {
   let users = await conn.sql(`SELECT * FROM users WHERE user_id=${user_id}`);
@@ -31,6 +32,7 @@ const getUserByAuthToken = async (authToken, mail) => {
 
 const register = async (user) => {
   let names = user.name.split(' ');
+  user.authToken = await createAuthToken(user);
   let cb = await conn.sql(`
             INSERT INTO users
               (mail, firstname, lastname, pic, authToken)
@@ -56,6 +58,14 @@ const setProfilePic = async (user, newPic) => {
 const getAllUsersButMe = async (myUserID) => {
   let sql = `SELECT user_id, mail, CONCAT(firstname, ' ', lastname) AS fullname, pic FROM users WHERE user_id<>${myUserID}`;
   return await conn.sql(sql);
+}
+
+const createAuthToken = async () => {
+  const authToken = generatePassword.generate({
+      length: 20,
+      numbers: true
+  });
+  return authToken;
 }
 
 module.exports = {

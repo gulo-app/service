@@ -6,7 +6,6 @@ const _                   =     require('lodash');
 const ctrlUser            =     require('../../controller/user');
 const conn                =     require('../../db/connection');
 const fbAdmin             =     require('../../firebase');
-const generatePassword    =   require('generate-password');
 
 module.exports = () => {
   passport.use('firebase', new CustomStrategy(async function(req, done) {
@@ -18,13 +17,10 @@ module.exports = () => {
       if(!user || !user.email)
         return done('idToken is missing', null);
 
-      user.authToken = await createAuthToken();
-
       let isExists = await conn.sql(`SELECT * FROM users WHERE mail='${user.email}'`);
       if(isExists.length===0)
         await ctrlUser.register(user);
 
-      await ctrlUser.setAuthToken(user);
       let db_user = await ctrlUser.getUserByMail(user.email);
 
       if(db_user.pic!==user.picture)
@@ -64,11 +60,3 @@ const verifyGoogleTokenByFirebaseAdmin = async (idToken) => {
       })
   })
 };
-
-const createAuthToken = async (user) => {
-  const authToken = generatePassword.generate({
-      length: 20,
-      numbers: true
-  });
-  return authToken;
-}

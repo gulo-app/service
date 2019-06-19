@@ -5,7 +5,7 @@ const {getProduct}                                  =   require('../product');
 const ctrlListProduct                               =   require('../list/list_id/product/product_id');
 const ctrlNotify                                    =   require('../notification');
 const {ParamsError, AuthError, ScanError}           =   require('../../config/errors');
-const {insertProductToList, forEachUserInList, isUserInList}      =   require('../list/list_id');
+const {insertProductToList, forEachUserInList, isUserInList, updateListModifiedAt}    =   require('../list/list_id');
 
 
 const verifyDevice = async (device) => {
@@ -56,6 +56,8 @@ const scan = async(device, barcode, io) => {
   if(!list_id)
     throw new AuthError('device not connected');
 
+  await updateListModifiedAt(list_id, io);
+
   let product = await getProduct(barcode);
   if(!product){ // *** PRODUCT NOT EXISTS AT ALL. send notification to all List's users
     await forEachUserInList(list_id, async (notifier_id) => {
@@ -86,6 +88,8 @@ const scanByMobile = async(user, list_id, barcode, shoppingMode, io) => {
   if(!isListBelongsUser)
     throw new AuthError('user not in list!');
 
+  await updateListModifiedAt(list_id, io);
+  
   if(shoppingMode){ //meaning that scan should toggleCheck list_product if exists in list
     let list_products = await conn.sql(`SELECT id, barcode FROM list_products WHERE list_id=${list_id} AND barcode=${barcode}`);
     for(let list_product of list_products)

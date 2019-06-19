@@ -18,7 +18,10 @@ const addList = async (creator, newList, io) => { //create new list {list_name, 
       throw new ParamsError("device already connected");
 
     //start insert into DB:
-    let cb = await conn.sql(`INSERT INTO lists (user_id, list_name, list_type_id, device_id) VALUES (${creator.user_id},'${newList.list_name}', ${newList.list_type}, ${device.id || null})`);
+    let cb = await conn.sql(`INSERT INTO lists
+                              (user_id, list_name, list_type_id, device_id, modified_at)
+                            VALUES
+                              (${creator.user_id},'${newList.list_name}', ${newList.list_type}, ${device.id || null}, NOW())`);
     let newListID = cb.insertId;
 
     if(newList.shares && newList.shares.length>0){ //insert shares(if exists) into list_shares table
@@ -36,12 +39,10 @@ const addList = async (creator, newList, io) => { //create new list {list_name, 
 
 // get all lists that the user shares
 const getAllLists = async (user) => {
+  let listsCB = [];
   let lists = await conn.sql(`
-               SELECT lists.list_id, lists.list_name, lt.*,
-                      COUNT(lp.barcode) as total_products
+               SELECT lists.list_id
                FROM lists
-               LEFT JOIN list_products lp ON lp.list_id=lists.list_id
-               LEFT JOIN list_types lt ON lt.list_type_id=lists.list_type_id
                WHERE lists.list_id IN
                    (   SELECT list_id FROM lists WHERE user_id=${user.user_id}
                         UNION
@@ -49,15 +50,10 @@ const getAllLists = async (user) => {
                     )
                GROUP BY list_id
               `);
-  for(let list of lists){
-    list.shares             =    await getListShares(list.list_id);
-    list.creator            =    await getListCreator(list.list_id);
-    list.device             =    await getListDevice(list.list_id) || {};
-    list.products           =    await getListProducts(list.list_id);
-    list.manual_products    =    await getListManualProducts(list.list_id);
-  }
+  for(let list of lists)
+    listsCB.push(await getList(list.list_id));
 
-  return lists;
+  return listsCB;
 }
 
 const getTypes = async () => {

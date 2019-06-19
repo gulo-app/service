@@ -1,4 +1,5 @@
 const _                           =   require('lodash');
+const moment                      =   require('moment');
 const conn                        =   require('../../../db/connection');
 const {ParamsError, AuthError}    =   require('../../../config/errors');
 const {getListProducts}           =   require('./product');
@@ -10,7 +11,8 @@ const ctrlNotify                  =   require('../../notification');
 const getList = async (list_id) => {
   let list = await conn.sql(`
                SELECT lists.list_id, lists.list_name, lt.*,
-                      COUNT(lp.barcode) as total_products
+                      COUNT(lp.barcode) as total_products,
+                      lists.modified_at
                FROM lists
                LEFT JOIN list_products lp ON lp.list_id=lists.list_id
                LEFT JOIN list_types lt ON lt.list_type_id=lists.list_type_id
@@ -178,13 +180,20 @@ const getBestShoppingCart = async (list_id) => {
       firm.products = [];
       continue;
     }
-      
+
     for(let p of firm.products)
       p.price = _.round(p.price, 2).toFixed(2);
   }
-
   return firms;
 }
+
+const updateListModifiedAt = async (list_id, io) => {
+  if(!list_id || !io)
+      return false;
+  await conn.sql(`UPDATE lists SET modified_at=NOW() WHERE list_id=${list_id}`);
+  await socketEmitter.emitByList(io, list_id, 'updateListModifiedAt' , {list_id, modified_at: moment()});
+}
+
 
 module.exports = {
   getList,
@@ -197,5 +206,6 @@ module.exports = {
   getListDevice,
   forEachUserInList,
   getBestShoppingCart,
-  isUserInList
+  isUserInList,
+  updateListModifiedAt
 }

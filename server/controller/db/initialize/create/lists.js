@@ -38,6 +38,7 @@ const lists = async () =>{
                       list_name     VARCHAR(100) NOT NULL,
                       list_type_id  INT UNSIGNED NOT NULL,
                       device_id     INT UNSIGNED,
+                      modified_at   DATETIME NOT NULL,
 
                       PRIMARY KEY (list_id),
                       UNIQUE KEY(device_id),

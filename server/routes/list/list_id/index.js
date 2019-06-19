@@ -13,6 +13,7 @@ router.use(async (req,res,next) => { //middleware to verify list_id
     if(list===null)
       throw new ParamsError('list_id invalid');
 
+    await ctrl.updateListModifiedAt(req.list_id, req.app.get('io')); //for every list_id CALL_API: update the list modified_at field and emit to list's clients by SocketEmitter
     req.list = list;
     next();
   }catch(e){RES_ERROR(res,e)}

@@ -1,5 +1,5 @@
-const conn            =   require('../../db/connection');
-const {ParamsError}   =   require('../../config/errors');
+const conn                =   require('../../db/connection');
+const {ParamsError}       =   require('../../config/errors');
 const generatePassword    =   require('generate-password');
 
 const getUserByID = async (user_id) => {

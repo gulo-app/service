@@ -9,7 +9,7 @@ const fbAdmin             =     require('../../firebase');
 
 module.exports = () => {
   passport.use('firebase', new CustomStrategy(async function(req, done) {
-      let {idToken, email} = req.body;
+      let {idToken, email} = req.body;      
       if(!idToken)
         return done('idToken is missing', null);
 

@@ -9,13 +9,15 @@ const fbAdmin             =     require('../../firebase');
 
 module.exports = () => {
   passport.use('firebase', new CustomStrategy(async function(req, done) {
-      let {idToken, email} = req.body;
+      let {idToken, isNative} = req.body;
       if(!idToken)
         return done('idToken is missing', null);
 
-      const user = await verifyGoogleTokenByFirebaseAdmin(idToken);
+      let verifyToken = (isNative===true) ? verifyGoogleTokenByClientID : verifyGoogleTokenByFirebaseAdmin;
+      const user = await verifyToken(idToken);
+
       if(!user || !user.email)
-        return done('idToken is missing', null);
+        return done('verification failed!', null);
 
       let isExists = await conn.sql(`SELECT * FROM users WHERE mail='${user.email}'`);
       if(isExists.length===0)
@@ -51,6 +53,21 @@ module.exports = () => {
   });
 }
 
+// const verifyFacebookToken = async (tokenId) => {
+//   return new Promise((resolve, reject) => {
+//       const url = `https://graph.facebook.com/me?access_token=${tokenId}`;
+//       axios.get(url).then((res) => {
+//         if(res.data && res.data.id)
+//           return resolve(true);
+//
+//         return resolve(false);
+//       }).catch((e) => {
+//         console.log('failed cb');
+//         return resolve(false);
+//       })
+//   })
+// }
+
 const verifyGoogleTokenByFirebaseAdmin = async (idToken) => {
   return new Promise((resolve,reject) => {
     fbAdmin.auth().verifyIdToken(idToken).then(function(cb) {
@@ -61,3 +78,15 @@ const verifyGoogleTokenByFirebaseAdmin = async (idToken) => {
       })
   })
 };
+
+const verifyGoogleTokenByClientID = async (tokenId) => {
+  return new Promise((resolve, reject) => {
+    googleVerifier.verify(tokenId, '180978526897-pa56t6sljm8hb1td5be3o2jdhopqbdj4.apps.googleusercontent.com', function (err, tokenInfo) {
+      if(err){
+        console.log(err.message);
+        return resolve(null);
+      }
+      resolve(tokenInfo)
+    });
+  })
+}

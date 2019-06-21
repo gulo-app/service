@@ -5,8 +5,8 @@ const passport          =   require('passport');
 const auth              =   require('../../../middleware/auth');
 const {RES_ERROR}       =   require('../../../config');
 
-router.post('/firebase', (req, res) => {
-  passport.authenticate('firebase', (err, user) => {
+router.post('/', (req, res) => {
+  passport.authenticate('login', (err, user) => {
     if(err)
       return res.status(500).send(err);
     if(!user)

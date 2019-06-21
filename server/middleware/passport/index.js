@@ -8,12 +8,12 @@ const conn                =     require('../../db/connection');
 const fbAdmin             =     require('../../firebase');
 
 module.exports = () => {
-  passport.use('firebase', new CustomStrategy(async function(req, done) {
-      let {idToken, isNative} = req.body;
-      if(!idToken)
-        return done('idToken is missing', null);
+  passport.use('login', new CustomStrategy(async function(req, done) {
+      let {idToken, provider} = req.body;
+      if(!idToken || !provider)
+        return done('params are missing', null);
 
-      let verifyToken = (isNative===true) ? verifyGoogleTokenByClientID : verifyGoogleTokenByFirebaseAdmin;
+      const verifyToken = getVerifyFunc(provider);
       const user = await verifyToken(idToken);
 
       if(!user || !user.email)
@@ -53,40 +53,54 @@ module.exports = () => {
   });
 }
 
-// const verifyFacebookToken = async (tokenId) => {
-//   return new Promise((resolve, reject) => {
-//       const url = `https://graph.facebook.com/me?access_token=${tokenId}`;
-//       axios.get(url).then((res) => {
-//         if(res.data && res.data.id)
-//           return resolve(true);
-//
-//         return resolve(false);
-//       }).catch((e) => {
-//         console.log('failed cb');
-//         return resolve(false);
-//       })
-//   })
-// }
+const getVerifyFunc = (provider) => {
+  switch(provider){
+    case 'firebase':
+      return verifyFirebaseToken;
+    case 'google':
+      return verifyGoogleToken;
+    case 'facebook':
+      return verifyFacebookToken;
+  }
+}
 
-const verifyGoogleTokenByFirebaseAdmin = async (idToken) => {
+const verifyFacebookToken = async (tokenId) => {
+  console.log(`facebook verify`);
+  return new Promise((resolve, reject) => {
+      const url = `https://graph.facebook.com/me?access_token=${tokenId}&fields=name,email,picture`;
+      axios.get(url).then(({data}) => {
+        if(!data)
+          return resolve(false);
+
+        resolve({email: data.email, name: data.name, picture: data.picture.data.url});
+      }).catch((e) => {
+        console.log('failed cb');
+        return resolve(false);
+      })
+  })
+}
+
+const verifyGoogleToken = async (tokenId) => {
+  console.log(`google verify`);
+  return new Promise((resolve, reject) => {
+    googleVerifier.verify(tokenId, '180978526897-pa56t6sljm8hb1td5be3o2jdhopqbdj4.apps.googleusercontent.com', function (err, res) {
+      if(err){
+        console.log(err.message);
+        return resolve(null);
+      }
+      resolve({email: res.email, name: res.name, picture: res.picture});
+    });
+  })
+}
+
+const verifyFirebaseToken = async (idToken) => {
+  console.log(`firebase verify`);
   return new Promise((resolve,reject) => {
-    fbAdmin.auth().verifyIdToken(idToken).then(function(cb) {
-        resolve(cb);
+    fbAdmin.auth().verifyIdToken(idToken).then(function(res) {
+        resolve({email: res.email, name: res.name, picture: res.picture});
       }).catch(function(error) {
         console.log(error.message);
         resolve(null);
       })
   })
 };
-
-const verifyGoogleTokenByClientID = async (tokenId) => {
-  return new Promise((resolve, reject) => {
-    googleVerifier.verify(tokenId, '180978526897-pa56t6sljm8hb1td5be3o2jdhopqbdj4.apps.googleusercontent.com', function (err, tokenInfo) {
-      if(err){
-        console.log(err.message);
-        return resolve(null);
-      }
-      resolve(tokenInfo)
-    });
-  })
-}

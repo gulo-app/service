@@ -56,7 +56,8 @@ const verifyGoogleTokenByFirebaseAdmin = async (idToken) => {
     fbAdmin.auth().verifyIdToken(idToken).then(function(cb) {
         resolve(cb);
       }).catch(function(error) {
-        reolsve(null);
+        console.log(error.message);
+        resolve(null);
       })
   })
 };

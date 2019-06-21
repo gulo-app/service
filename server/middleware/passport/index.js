@@ -9,12 +9,10 @@ const fbAdmin             =     require('../../firebase');
 
 module.exports = () => {
   passport.use('firebase', new CustomStrategy(async function(req, done) {
-      console.log(`test`);
       let {idToken, email} = req.body;
-      console.log(req.body);
       if(!idToken)
         return done('idToken is missing', null);
-      console.log(idToken);
+
       const user = await verifyGoogleTokenByFirebaseAdmin(idToken);
       if(!user || !user.email)
         return done('idToken is missing', null);

@@ -65,7 +65,7 @@ const getVerifyFunc = (provider) => {
 }
 
 const verifyFacebookToken = async (tokenId) => {
-  console.log(`facebook verify`);
+  //console.log(`facebook verify`);
   return new Promise((resolve, reject) => {
       const url = `https://graph.facebook.com/me?access_token=${tokenId}&fields=name,email,picture`;
       axios.get(url).then(({data}) => {
@@ -74,14 +74,14 @@ const verifyFacebookToken = async (tokenId) => {
 
         resolve({email: data.email, name: data.name, picture: data.picture.data.url});
       }).catch((e) => {
-        console.log('failed cb');
+        //console.log('failed cb');
         return resolve(false);
       })
   })
 }
 
 const verifyGoogleToken = async (tokenId) => {
-  console.log(`google verify`);
+  //console.log(`google verify`);
   return new Promise((resolve, reject) => {
     googleVerifier.verify(tokenId, '180978526897-pa56t6sljm8hb1td5be3o2jdhopqbdj4.apps.googleusercontent.com', function (err, res) {
       if(err){
@@ -94,7 +94,7 @@ const verifyGoogleToken = async (tokenId) => {
 }
 
 const verifyFirebaseToken = async (idToken) => {
-  console.log(`firebase verify`);
+  //console.log(`firebase verify`);
   return new Promise((resolve,reject) => {
     fbAdmin.auth().verifyIdToken(idToken).then(function(res) {
         resolve({email: res.email, name: res.name, picture: res.picture});

@@ -64,7 +64,7 @@ const list_products = async () =>{
                       id          INT         UNSIGNED AUTO_INCREMENT,
                       list_id     INT         UNSIGNED NOT NULL,
                       barcode     DOUBLE      UNSIGNED NOT NULL,
-                      quantity    INT         UNSIGNED NOT NULL,
+                      quantity    INT         UNSIGNED NOT NULL DEFAULT 1,
                       isChecked   TINYINT(1)  DEFAULT 0,
                       memo        MEDIUMTEXT  DEFAULT NULL,
 

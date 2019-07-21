@@ -84,10 +84,14 @@ class InventoryCrawler extends Inventory{
       product.product_name  =   product.product_name.replace(/"/g,"''");
       product.capacity      =   product.capacity || 0;
 
-      if(product.capacity_units_name === 'לקג')
+      if(product.capacity_units_name === 'לקג' || product.capacity_units_name === 'קילו')
         product.capacity_units_name = 'קג';
-      else if(product.capacity_units_name === 'יחי')
+      else if(product.capacity_units_name === 'יחי' || product.capacity_units_name === 'יחידו' || product.capacity_units_name === 'יחידות' || product.capacity_units_name === 'יח' || product.capacity_units_name === '1+C12')
         product.capacity_units_name = 'יחידה'
+      else if(product.capacity_units_name === 'אורך')
+        product.capacity_units_name = 'יחידה'
+      else if(product.capacity_units_name === 'ליטור')
+        product.capacity_units_name = 'ליטר'
 
       if(!product.category_id)
         product.category_id = menuIndexParser(product.menuIndex);

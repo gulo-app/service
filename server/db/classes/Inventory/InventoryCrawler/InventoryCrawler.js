@@ -18,14 +18,13 @@ class InventoryCrawler extends Inventory{
     let counter = 0;
     for(let product of products){
       try{
-        await this.insertCrawlProduct(product, title==='Shufersal' ? true : false);
+        await this.insertCrawlProduct(product);
         counter++;
       }catch(e){
 
       }finally{
         bar.tick();   // process.stdout.write(`.`);
       }
-
     }
     console.log(`<${counter}> products inserted to db successfully`);
   }
@@ -50,21 +49,16 @@ class InventoryCrawler extends Inventory{
     console.log(`<${counter}> manual_products inserted to db successfully`);
   }
 
-  async insertCrawlProduct(product, isShufersal){
+  async insertCrawlProduct(product){
     let new_brand = await conn.sql(`
           INSERT INTO brands (brand_name) VALUES ("${product.firm_name}")
           ON DUPLICATE KEY UPDATE brand_id = LAST_INSERT_ID(brand_id);
       `);
 
-    let new_capacity_unit = {};
-    if(isShufersal){
-        new_capacity_unit.insertId = product.capacity_units_name;
-    } else {
-      new_capacity_unit= await conn.sql(`
-            INSERT INTO capacity_units (unit_name) VALUES ("${product.capacity_units_name}")
-            ON DUPLICATE KEY UPDATE capacity_unit_id = LAST_INSERT_ID(capacity_unit_id);
-        `);
-    }
+    let new_capacity_unit= await conn.sql(`
+          INSERT INTO capacity_units (unit_name) VALUES ("${product.capacity_units_name}")
+          ON DUPLICATE KEY UPDATE capacity_unit_id = LAST_INSERT_ID(capacity_unit_id);
+      `);
 
 
     await conn.sql(`
@@ -98,7 +92,7 @@ class InventoryCrawler extends Inventory{
       if(!product.category_id)
         product.category_id = menuIndexParser(product.menuIndex);
 
-      if(product.barcode.toString().length<10) //remove all illegal barcodes from array
+      if(product.barcode.toString().length<5) //remove all illegal barcodes from array
         products.splice(i,1);
     }
   }

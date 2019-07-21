@@ -11,7 +11,7 @@ const updatePrices = async () => {
   console.log(`*** update products PRICES ***`);
   let bar = new ProgressBar('loading [:bar] :percent :etas', { total: prices.length,complete: '=', incomplete: ' ' });
   console.log(prices.length);
-
+  let counter=0;
   for(let product of prices){
     try{
       if(product.barcode.toString().length<10){ //remove all illegal barcodes from array
@@ -24,7 +24,7 @@ const updatePrices = async () => {
                         (${product.shopping_cart_firm_id}, ${product.barcode}, ${product.price}, NOW())
                       ON DUPLICATE KEY UPDATE price=${product.price}
       `);
-
+      counter++;
       bar.tick();
     }catch(e){
       if(e.errno!==1452) //duplicate key error should be ignored!
@@ -32,6 +32,7 @@ const updatePrices = async () => {
       bar.tick();
     }
   }
+  console.log(`${counter} prices updated`);
 }
 
 module.exports = {

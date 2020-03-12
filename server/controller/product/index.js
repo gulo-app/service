@@ -116,6 +116,7 @@ const verifyProduct = async (product, noti, io) => {
   if(noti.subject_id!==product.barcode) //check if notification is similiar to newProduct barcode. to avoid fakes notifications.
     throw new ParamsError('notification is illegal');
 
+  console.log(noti);
   let newVerifiedCounter = product.verifiedCounter-1;
 
   if(newVerifiedCounter>=0)

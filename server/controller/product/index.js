@@ -3,6 +3,7 @@ const {ParamsError, AuthError}          =   require('../../config/errors');
 const {VERIFIED_COUNTER}                =   require('../../config');
 const {getListProduct}                  =   require('../list/list_id/product/product_id');
 const {getNotification}                 =   require('../notification/notification_id');
+const {getUserByID}                     =   require('../user');
 const socketEmitter                     =   require('../socket/emitter');
 const {insertProductToList, getList}    =   require('../list/list_id');
 
@@ -61,12 +62,18 @@ const insertUserProduct = async (newProduct, noti, io) => {
     newProduct.brand_id = cb.insertId;
   }
 
+  const notifier = await getUserByID(noti.notifier_id);
+
+  let verifiedCounter = VERIFIED_COUNTER;
+  if(notifier.mail==='flom.tomer@gmail.com')
+    verifiedCounter = 0;
+
   //Insert product to Products Inventory
   await conn.sql(`
     INSERT INTO products
       (barcode, product_name, brand_id, capacity, capacity_unit_id, verifiedCounter)
     VALUES
-      (${newProduct.barcode}, "${newProduct.product_name}", ${newProduct.brand_id}, ${newProduct.capacity}, ${newProduct.capacity_unit_id}, ${VERIFIED_COUNTER});
+      (${newProduct.barcode}, "${newProduct.product_name}", ${newProduct.brand_id}, ${newProduct.capacity}, ${newProduct.capacity_unit_id}, ${verifiedCounter});
   `);
 
   //assign category to product
@@ -116,8 +123,9 @@ const verifyProduct = async (product, noti, io) => {
   if(noti.subject_id!==product.barcode) //check if notification is similiar to newProduct barcode. to avoid fakes notifications.
     throw new ParamsError('notification is illegal');
 
-  console.log(noti);
   let newVerifiedCounter = product.verifiedCounter-1;
+  if(newVerifiedCounter<0)
+    newVerifiedCounter=0;
 
   if(newVerifiedCounter>=0)
     await conn.sql(`UPDATE products SET verifiedCounter=${newVerifiedCounter} WHERE barcode=${product.barcode}`); //decreament verifiedCounter

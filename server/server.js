@@ -10,12 +10,12 @@ const socket      =   require('./socket');
 const firebase    =   require('./firebase');
 
 const server = async () => {
-  appConfig(app);  
+  appConfig(app);
   app.use('/', routes);
 
   //create HTTP(dev) || HTTPS(prod) server
-  if(process.env.IS_MONTV && 2===1){  //montv production provide SSL connection
-      var ssl_credentials = {key:  fs.readFileSync(`../../nodejs/montv-service/server/security/ssl/montv.pem`, 'utf8'), cert: fs.readFileSync(`../../nodejs/montv-service/server/security/ssl/montv.cer`, 'utf8')};
+  if(process.env.IS_MONTV){  //montv production provide SSL connection
+      var ssl_credentials = {key:  fs.readFileSync(`../../nodejs/node-service/server/security/ssl/2020/montv.pem`, 'utf8'), cert: fs.readFileSync(`../../nodejs/node-service/server/security/ssl/2020/montv.cer`, 'utf8')};
 
       const httpsServer = https.createServer(ssl_credentials, app);
       await socket(httpsServer, app);

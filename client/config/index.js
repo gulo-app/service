@@ -11,7 +11,7 @@ switch(process.env.NODE_ENV){
     break;
 }
 PORT = process.env.PORT || 9500;
-console.log(process.env.IS_MONTV);
+
 
 module.exports = {
   PORT

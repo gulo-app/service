@@ -12,9 +12,10 @@ const client = async () => {
   app.get('/*', (req, res) => {
     res.sendFile(path.join(buildPath, '/index.html'));
   })
+  const currYear = (new Date()).getFullYear();
 
   if(process.env.IS_MONTV){  //montv production provide SSL connection
-      var ssl_credentials = {key:  fs.readFileSync(`../../nodejs/node-service/server/security/ssl/2020/montv.pem`, 'utf8'), cert: fs.readFileSync(`../../nodejs/node-service/server/security/ssl/2020/montv.cer`, 'utf8')};
+      var ssl_credentials = {key:  fs.readFileSync(`../../nodejs/node-service/server/security/ssl/${currYear}/montv.pem`, 'utf8'), cert: fs.readFileSync(`../../nodejs/node-service/server/security/ssl/${currYear}/montv.cer`, 'utf8')};
 
       const httpsServer = https.createServer(ssl_credentials, app);
       httpsServer.listen(PORT, () => {

@@ -9,8 +9,7 @@ const socketEmitter     =   require('../../../../../controller/socket/emitter');
 /*      list/:list_id/product/:product_id      */
 
 router.use(async (req,res,next) => { //middleware to verify product_id
-  try{
-    console.log("here");
+  try{    
     let product = await ctrl.getListManualProduct(req.list_id, req.product_id);
     if(product===null)
       throw new ParamsError('product_id invalid');

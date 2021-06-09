@@ -45,7 +45,7 @@ module.exports = (app) => {
     origin: function (origin, callback) {
       callback(null,true);
     },
-    methods: ['GET', 'PUT', 'POST', 'DELETE', '[PATCH]', 'OPTIONS'],
+    methods: ['GET', 'PUT', 'POST', 'DELETE', 'PATCH', 'OPTIONS'],
     credentials: true,
     optionsSuccessStatus: 200
   }
